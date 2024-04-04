@@ -1,0 +1,10 @@
+.holeChange {
+  display: flex;
+  flex-direction: row;
+  width: fit-content;
+  height: 60px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  font-weight: bold;
+  align-items: center;
+}

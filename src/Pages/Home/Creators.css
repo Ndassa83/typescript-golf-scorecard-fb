@@ -1,0 +1,85 @@
+.creatorsContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: fit-content;
+  margin: 10px;
+  padding: 10px;
+  align-self: center;
+  border: 2px solid #c4e0c4;
+  border-radius: 10px;
+  background-color: #c4e0c4;
+}
+
+.modalText {
+  margin-bottom: 20px;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+}
+
+.modalContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0x;
+  left: 0;
+  bottom: 100px;
+  width: 100%;
+  height: 100%;
+  overflow: scroll;
+}
+
+.modalContent {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  width: fit-content;
+  overflow: scroll;
+}
+
+.coursePropsContainer {
+  display: flex;
+  flex-direction: row;
+}
+
+.courseProps {
+  display: flex;
+  flex-direction: column;
+}
+
+.totalCourseProps {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.coursePropsTitlesContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.creatorCell {
+  height: 40px;
+  width: 40px;
+  justify-content: center;
+}
+
+.titleCell {
+  width: 80px !important;
+  text-align: left !important;
+  justify-content: left !important;
+  align-content: center;
+}
+.totalCell {
+  width: 80px !important;
+}
+
+.navButtons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}

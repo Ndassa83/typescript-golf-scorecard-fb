@@ -1,0 +1,19 @@
+.filterWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 20px;
+  overflow: scroll;
+  border: 2px solid #c4e0c4;
+  border-radius: 10px;
+  background-color: #c4e0c4;
+  margin: 10px;
+  padding: 10px;
+}
+
+.textField {
+  margin-top: 20px;
+  min-width: 200px;
+  background-color: #ffffff;
+}

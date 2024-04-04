@@ -1,0 +1,69 @@
+.scoreCard {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+  font-size: 12px;
+  background-color: #7eb78a;
+  border-radius: 10px;
+  margin: 20px;
+}
+
+.titles {
+  justify-content: left;
+  text-align: left;
+  width: 80px;
+  height: 20px;
+}
+.cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 38px;
+  height: 38px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.23);
+  border-left: 1px solid black;
+}
+.cellTitles {
+  font-weight: bold;
+  width: 80px;
+  text-align: center;
+  border-left: none !important;
+  &:last-child {
+    border-bottom: none !important;
+    border-bottom-left-radius: 10px;
+  }
+}
+
+.scores {
+  background-color: #c4e0c4;
+  &:last-child {
+    border-bottom: none !important;
+  }
+}
+
+.currentHole {
+  font-weight: bold;
+}
+
+.totals {
+  width: 70px;
+  font-weight: bold;
+  &:last-child {
+    border-bottom-right-radius: 10px;
+  }
+}
+.courseName {
+  font-size: 20px !important;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.dateOfRound {
+  font-weight: normal;
+  font-size: 10px;
+}
+
+.playerDateDiv {
+  display: flex;
+  flex-direction: column;
+}
