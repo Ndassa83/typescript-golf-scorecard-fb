@@ -1,0 +1,38 @@
+.selectorsContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: fit-content;
+  margin: 10px;
+  padding: 10px;
+  align-self: center;
+  border: 2px solid #c4e0c4;
+  border-radius: 10px;
+  background-color: #c4e0c4;
+}
+
+.courseSelector {
+  margin: 10px;
+  width: 200px !important;
+  font-size: 12px !important;
+  background-color: #ffffff;
+}
+
+.courseDetails {
+  font-size: 12px;
+  text-align: center;
+}
+.playerDetails {
+  font-size: 12px;
+  text-align: left;
+  margin-left: 60px;
+  margin-top: 20px;
+}
+
+.playerRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: -20px;
+}

@@ -1,0 +1,9 @@
+.homeContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.creatorsContainer {
+  display: flex;
+  flex-direction: row;
+}
