@@ -32,6 +32,7 @@ export type PlayerOptionType = {
 export type FetchedPlayer = {
   userId: number;
   userName: string;
+  avatar: File | null;
 };
 
 export type CourseRoundsMap = {

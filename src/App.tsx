@@ -29,13 +29,13 @@ import logo from "./images/products-products-AIMMG107.png";
 import "./App.css";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCDdERZLE_JqpdqT7sIYpeEWAS6p83JQoI",
-  authDomain: "golf-scorecard-8602a.firebaseapp.com",
-  projectId: "golf-scorecard-8602a",
-  storageBucket: "golf-scorecard-8602a.appspot.com",
-  messagingSenderId: "168934969477",
-  appId: "1:168934969477:web:66b4256c161a55698cd9ec",
-  measurementId: "G-3K13Y12CKY",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
 initializeApp(firebaseConfig);
@@ -54,6 +54,7 @@ const App = () => {
   const [createdPlayerId, setCreatedPlayerId] = useState<number | undefined>();
   const [createdPlayerName, setCreatedPlayerName] = useState<string>("");
   const [createdCourse, setCreatedCourse] = useState<Course | null>(null);
+  const [playerImage, setPlayerImage] = useState<File | null>(null);
 
   const playerCollectionRef = collection(database, "userList");
   const courseCollectionRef = collection(database, "courseData");
@@ -101,6 +102,7 @@ const App = () => {
       const newPlayer = {
         userId: createdPlayerId,
         userName: createdPlayerName,
+        avatar: playerImage,
       };
       setDoc(doc(database, `userList/${createdPlayerId}`), newPlayer).then(
         () => {
@@ -170,6 +172,8 @@ const App = () => {
                 setCreatedPlayerId={setCreatedPlayerId}
                 createdCourse={createdCourse}
                 setCreatedCourse={setCreatedCourse}
+                playerImage={playerImage}
+                setPlayerImage={setPlayerImage}
               />
             }
           />
