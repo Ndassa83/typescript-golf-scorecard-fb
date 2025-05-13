@@ -30,7 +30,7 @@ export const CourseCreator = ({
       holesArray.push({
         holeNumber: i + 1,
         yards: 0,
-        par: 0,
+        par: 3,
         handicap: 0,
       });
     }

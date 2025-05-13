@@ -16,9 +16,9 @@ export const PlayerScores = ({
   currentHole,
   courseSelected,
 }: PlayerScoresProps) => {
-  const incrementPlayerScore = (playerIndex: number) => {
+  const incrementPlayerScore = (r: number) => {
     const updatedScores = players.map((player, index) => {
-      if (playerIndex === index) {
+      if (r === index) {
         if (!players[index].scores[currentHole] && courseSelected) {
           players[index].scores[currentHole] =
             courseSelected.holes[currentHole].par;
@@ -31,9 +31,9 @@ export const PlayerScores = ({
 
     setPlayers(updatedScores);
   };
-  const decrementPlayerScore = (playerIndex: number) => {
+  const decrementPlayerScore = (r: number) => {
     const updatedScores = players.map((player, index) => {
-      if (playerIndex === index) {
+      if (r === index) {
         if (!players[index].scores[currentHole] && courseSelected) {
           players[index].scores[currentHole] =
             courseSelected.holes[currentHole].par;

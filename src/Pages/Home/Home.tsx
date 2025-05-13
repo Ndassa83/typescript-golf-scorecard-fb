@@ -24,6 +24,8 @@ type HomeProps = {
   setCreatedPlayerId: React.Dispatch<React.SetStateAction<number | undefined>>;
   createdCourse: Course | null;
   setCreatedCourse: React.Dispatch<React.SetStateAction<Course | null>>;
+  playerImage: File | null;
+  setPlayerImage: React.Dispatch<React.SetStateAction<File | null>>;
 };
 
 const Home = ({
@@ -38,15 +40,20 @@ const Home = ({
   createdPlayerName,
   createdCourse,
   setCreatedCourse,
+  playerImage,
+  setPlayerImage,
 }: HomeProps) => {
   return (
     <div className="homeContainer">
+      Create a Player or Course...
       <div className="creatorsContainer">
         <PlayerCreator
           setCreatedPlayerId={setCreatedPlayerId}
           setCreatedPlayerName={setCreatedPlayerName}
           createdPlayerName={createdPlayerName}
           playerOptions={playerOptions}
+          playerImage={playerImage}
+          setPlayerImage={setPlayerImage}
         />
         <CourseCreator
           createdCourse={createdCourse}
@@ -54,6 +61,7 @@ const Home = ({
           courseOptions={courseOptions}
         />
       </div>
+      Select a Course and Players to start round
       <Selectors
         players={players}
         setPlayers={setPlayers}

@@ -9,6 +9,8 @@ type PlayerCreatorProps = {
   setCreatedPlayerId: React.Dispatch<React.SetStateAction<number | undefined>>;
   createdPlayerName: string | null;
   playerOptions: PlayerOptionType[];
+  playerImage: File | null;
+  setPlayerImage: React.Dispatch<React.SetStateAction<File | null>>;
 };
 
 export const PlayerCreator = ({
@@ -16,9 +18,12 @@ export const PlayerCreator = ({
   setCreatedPlayerName,
   createdPlayerName,
   playerOptions,
+  playerImage,
+  setPlayerImage,
 }: PlayerCreatorProps) => {
   const [isPlayerCreatorOpen, setIsPlayerCreatorOpen] =
     useState<boolean>(false);
+  const [image, setImage] = useState<File | null>(null);
 
   const handleCreatePlayerModal = () => {
     setIsPlayerCreatorOpen((prev) => !prev);
@@ -36,6 +41,14 @@ export const PlayerCreator = ({
     } else {
       setCreatedPlayerId(SeedRandom(createdPlayerName));
       setIsPlayerCreatorOpen(false);
+      setPlayerImage(image);
+    }
+  };
+
+  const handleImageChange = (event: any) => {
+    const file = event.target.files[0];
+    if (file) {
+      setImage(file);
     }
   };
 
@@ -54,6 +67,11 @@ export const PlayerCreator = ({
               value={createdPlayerName}
               onChange={(e) => setCreatedPlayerName(e.target.value)}
             />
+            <Button variant="contained" component="label">
+              Upload File
+              <input type="file" hidden onChange={handleImageChange} />
+            </Button>
+
             <Button
               className="button"
               disabled={!createdPlayerName}

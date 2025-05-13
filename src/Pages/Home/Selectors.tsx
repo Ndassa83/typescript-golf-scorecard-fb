@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Autocomplete, TextField, Button } from "@mui/material";
 import dayjs from "dayjs";
 import "./Selectors.css";
-
 import {
   Player,
   Course,
@@ -47,6 +46,7 @@ export const Selectors = ({
         scores: [],
         date: dayjs().toISOString(),
         currentCourse: courseSelected,
+        // avatar: selectedPlayer.avatar?. //i want have the image here
       };
 
       setPlayers((prevPlayers: Player[]) => [...prevPlayers, newPlayer]);
@@ -89,7 +89,7 @@ export const Selectors = ({
       })
     );
   };
-
+  console.log(players);
   return (
     <div className="selectorsContainer">
       <Autocomplete
@@ -131,14 +131,16 @@ export const Selectors = ({
 
       <div className="playerDetails">
         {players.map((player) => (
+          //if player.value.userID is in players
           <div className="playerRow">
-            <div key={player.userId}>{player.name}</div>
+            {/* <img src={player.avatar?.name} /> */}
             <Button
               className="button"
               onClick={() => deletePlayer(player.userId)}
             >
-              X
+              x
             </Button>
+            <div key={player.userId}>{player.name}</div>
           </div>
         ))}
       </div>
