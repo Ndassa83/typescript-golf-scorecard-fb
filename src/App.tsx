@@ -19,7 +19,6 @@ import {
 } from "firebase/firestore";
 import "firebase/firestore";
 import { getApp } from "firebase/app";
-import { getStorage } from "firebase/storage";
 import {
   getAuth,
   signInWithPopup,
@@ -67,7 +66,6 @@ const database = getFirestore();
 const collectionRef = collection(database, "playerData");
 
 const firebaseApp = getApp();
-const storage = getStorage(firebaseApp, "gs://my-custom-bucket");
 const auth = getAuth(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
 
