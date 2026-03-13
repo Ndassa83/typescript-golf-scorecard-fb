@@ -18,12 +18,12 @@ export const HoleChanger = ({
   setPlayerRounds,
 }: HoleChangerProps) => {
   const holeIncrementHandler = () => {
-    const updatedScores = playerRounds.map((player, index) => {
-      if (!playerRounds[index].scores[currentHole] && courseSelected) {
-        playerRounds[index].scores[currentHole] =
-          courseSelected.holes[currentHole].par;
+    const updatedScores = playerRounds.map((player) => {
+      if (!player.scores[currentHole] && courseSelected) {
+        const newScores = [...player.scores];
+        newScores[currentHole] = courseSelected.holes[currentHole].par;
+        return { ...player, scores: newScores };
       }
-
       return player;
     });
     setCurrentHole((prevHole) => prevHole + 1);
