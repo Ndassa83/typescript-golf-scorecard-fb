@@ -1,0 +1,70 @@
+.postRoundTitle {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+.postRoundCourse {
+  margin: 0 0 16px;
+  text-align: center;
+  color: var(--green-primary);
+  font-weight: 600;
+}
+
+.postRoundTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.postRoundTable th,
+.postRoundTable td {
+  padding: 8px 12px;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.postRoundTable th {
+  font-weight: 700;
+  border-bottom: 2px solid var(--green-primary);
+}
+
+.postRoundTable td:first-child {
+  text-align: left;
+}
+
+.under-par {
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+.over-par {
+  color: #c62828;
+  font-weight: 700;
+}
+
+.better-avg {
+  color: #2e7d32;
+}
+
+.worse-avg {
+  color: #c62828;
+}
+
+.first-round {
+  color: #888;
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+.shareButtons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.goHomeBtn {
+  width: 100%;
+}

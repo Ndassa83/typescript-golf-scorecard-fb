@@ -185,6 +185,58 @@
   color: var(--text-dark);
 }
 
+.pastGamesFilters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.dateRangeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dateInput {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 2px solid #d8eed8;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-dark);
+  background: white;
+  outline: none;
+  font-family: inherit;
+}
+
+.dateInput:hover,
+.dateInput:focus {
+  border-color: var(--green-primary);
+}
+
+.dateRangeSep {
+  font-size: 13px;
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+.clearFiltersBtn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #c0392b;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+}
+
+.clearFiltersBtn:hover {
+  text-decoration: underline;
+}
+
 .loadMoreBtn {
   width: 100%;
   margin-top: 10px;

@@ -17,6 +17,8 @@ export const HoleChanger = ({
   playerRounds,
   setPlayerRounds,
 }: HoleChangerProps) => {
+  const isLastHole = !!(courseSelected && currentHole === courseSelected.holes.length - 1);
+
   const holeIncrementHandler = () => {
     const updatedScores = playerRounds.map((player) => {
       if (!player.scores[currentHole] && courseSelected) {
@@ -26,8 +28,10 @@ export const HoleChanger = ({
       }
       return player;
     });
-    setCurrentHole((prevHole) => prevHole + 1);
     setPlayerRounds(updatedScores);
+    if (!isLastHole) {
+      setCurrentHole((prevHole) => prevHole + 1);
+    }
   };
 
   return (
@@ -42,12 +46,9 @@ export const HoleChanger = ({
       <div>Hole {currentHole + 1}</div>
       <Button
         className="button"
-        disabled={
-          !!(courseSelected && currentHole === courseSelected.holes.length - 1)
-        }
         onClick={holeIncrementHandler}
       >
-        {">"}
+        {isLastHole ? "Finish" : ">"}
       </Button>
     </div>
   );

@@ -1,19 +1,23 @@
-import { Autocomplete, TextField, Button } from "@mui/material";
-import { PlayerOptionType, CourseOptionType } from "../../types";
+import { Autocomplete, TextField } from "@mui/material";
+import { PlayerOptionType } from "../../types";
 import "./StatFilter.css";
 
 type DartStatFilterProps = {
   playerOptions: PlayerOptionType[];
   selectedDate: string | null;
+  hasActiveFilters: boolean;
   handleSelectedPlayerChange: any;
   handleDateChange: any;
+  onClearFilters: () => void;
 };
 
 const DartStatFilter = ({
   playerOptions,
   selectedDate,
+  hasActiveFilters,
   handleSelectedPlayerChange,
   handleDateChange,
+  onClearFilters,
 }: DartStatFilterProps) => {
   return (
     <div className="filterWrapper">
@@ -34,6 +38,12 @@ const DartStatFilter = ({
         onChange={handleDateChange}
         className="textField"
       />
+
+      {hasActiveFilters && (
+        <button className="clearFiltersBtn" onClick={onClearFilters}>
+          Clear filters
+        </button>
+      )}
     </div>
   );
 };

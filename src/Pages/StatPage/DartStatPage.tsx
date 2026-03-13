@@ -19,19 +19,15 @@ type DartStatPageProps = {
 
 const DartStatPage = ({ playerOptions }: DartStatPageProps) => {
   const [allScoreData, setAllScoreData] = useState<DartRound[]>([]);
-  const [filteredAllScoreData, setFilteredAllScoreData] = useState<DartRound[]>(
-    []
-  );
-  const [selectedPlayer, setSelectedPlayer] = useState<FetchedPlayer | null>(
-    null
-  );
+  const [filteredAllScoreData, setFilteredAllScoreData] = useState<DartRound[]>([]);
+  const [selectedPlayer, setSelectedPlayer] = useState<FetchedPlayer | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const database = getFirestore();
   const dartRoundsCollectionRef = collection(database, "dartRounds");
 
   const handleSelectedPlayerChange = (
-    event: React.SyntheticEvent,
+    _event: React.SyntheticEvent,
     newValue: PlayerOptionType | null
   ) => {
     setSelectedPlayer(newValue?.value || null);
@@ -40,6 +36,13 @@ const DartStatPage = ({ playerOptions }: DartStatPageProps) => {
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(event.target.value);
   };
+
+  const handleClearFilters = () => {
+    setSelectedPlayer(null);
+    setSelectedDate(null);
+  };
+
+  const hasActiveFilters = !!(selectedPlayer || selectedDate);
 
   const getScoresData = async () => {
     const snapshot = await getDocs(
@@ -75,24 +78,43 @@ const DartStatPage = ({ playerOptions }: DartStatPageProps) => {
   return (
     <div className="page-container">
       <GarageDartsLogo className="gameLogo" />
-      <div className="two-col-layout statPageLayout">
-        <div className="statLeftCol">
-          <h2 className="statColHeading">Filters</h2>
-          <DartStatFilter
-            playerOptions={playerOptions}
-            selectedDate={selectedDate}
-            handleSelectedPlayerChange={handleSelectedPlayerChange}
-            handleDateChange={handleDateChange}
-          />
-        </div>
-        <div className="statRightCol">
-          <h2 className="statColHeading">Stats</h2>
+
+      {/* Top: Leaderboards (always visible, full width) */}
+      <h2 className="statColHeading">Leaderboards</h2>
+      <DartOverallStats
+        filteredAllScoreData={allScoreData}
+        allScoreData={allScoreData}
+        selectedPlayer={null}
+      />
+
+      {/* Page break divider */}
+      <div className="statPageDivider">
+        <span className="statPageDividerLabel">Player Stats</span>
+      </div>
+
+      {/* Filter */}
+      <div className="statFilterSection">
+        <DartStatFilter
+          playerOptions={playerOptions}
+          selectedDate={selectedDate}
+          hasActiveFilters={hasActiveFilters}
+          handleSelectedPlayerChange={handleSelectedPlayerChange}
+          handleDateChange={handleDateChange}
+          onClearFilters={handleClearFilters}
+        />
+      </div>
+
+      {/* Player stats */}
+      <div className="statStatsSection">
+        {!hasActiveFilters ? (
+          <div className="statEmptyMsg">Select a player above to view their stats.</div>
+        ) : (
           <DartOverallStats
             filteredAllScoreData={filteredAllScoreData}
             allScoreData={allScoreData}
             selectedPlayer={selectedPlayer}
           />
-        </div>
+        )}
       </div>
     </div>
   );

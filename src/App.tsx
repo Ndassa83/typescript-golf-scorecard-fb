@@ -244,6 +244,25 @@ const App = () => {
       });
   }, [createdCourse]);
 
+  const handleUpdateCourse = (updatedCourse: Course) => {
+    setDoc(doc(database, `courseData/${updatedCourse.courseId}`), {
+      courseId: updatedCourse.courseId,
+      courseName: updatedCourse.courseName,
+      holes: updatedCourse.holes,
+      totalPar: updatedCourse.totalPar,
+      totalYards: updatedCourse.totalYards,
+    }).then(() => {
+      setCourseOptions((prev) =>
+        prev.map((opt) =>
+          opt.value.courseId === updatedCourse.courseId
+            ? { label: updatedCourse.courseName, value: updatedCourse }
+            : opt
+        )
+      );
+      setCourseSelected(updatedCourse);
+    });
+  };
+
   return (
     <div className="background">
       <div className="App">
@@ -384,6 +403,7 @@ const App = () => {
                 setCurrentPlayers={setCurrentPlayers}
                 playerRounds={playerRounds}
                 setPlayerRounds={setPlayerRounds}
+                onUpdateCourse={handleUpdateCourse}
               />
             }
           />
@@ -394,6 +414,7 @@ const App = () => {
                 currentPlayers={currentPlayers}
                 setCurrentPlayers={setCurrentPlayers}
                 dartRoundCollection={dartRoundCollection}
+                currentUserEmail={currentUser?.email ?? null}
               />
             }
           />
@@ -408,6 +429,7 @@ const App = () => {
                 collectionRef={collectionRef}
                 playerRounds={playerRounds}
                 setPlayerRounds={setPlayerRounds}
+                currentUserEmail={currentUser?.email ?? null}
               />
             }
           />

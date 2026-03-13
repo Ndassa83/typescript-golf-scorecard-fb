@@ -16,6 +16,7 @@ type ScoreCardPageProps = {
   database: Firestore;
   collectionRef: CollectionReference;
   setCourseSelected: React.Dispatch<React.SetStateAction<Course | null>>;
+  currentUserEmail: string | null;
 };
 const ScoreCardPage = ({
   playerRounds,
@@ -24,6 +25,7 @@ const ScoreCardPage = ({
   setCourseSelected,
   database,
   collectionRef,
+  currentUserEmail,
 }: ScoreCardPageProps) => {
   const [currentHole, setCurrentHole] = useState<number>(
     () => loadFromStorage<number>(STORAGE_KEYS.GOLF_CURRENT_HOLE) ?? 0
@@ -63,6 +65,7 @@ const ScoreCardPage = ({
         collectionRef={collectionRef}
         courseSelected={courseSelected}
         setCourseSelected={setCourseSelected}
+        currentUserEmail={currentUserEmail}
       />
     </div>
   );

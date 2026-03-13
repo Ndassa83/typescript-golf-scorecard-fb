@@ -28,18 +28,25 @@
 }
 
 .playerDetails {
-  font-size: 1rem;
-  font-weight: bold;
-  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   align-self: flex-start;
+  margin-top: 6px;
 }
 
-.playerRow {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+.playerChip {
+  background-color: var(--green-primary) !important;
+  color: #fff !important;
+  font-weight: bold !important;
+}
+
+.playerChip .MuiChip-deleteIcon {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.playerChip .MuiChip-deleteIcon:hover {
+  color: #fff !important;
 }
 
 .muiListbox {
