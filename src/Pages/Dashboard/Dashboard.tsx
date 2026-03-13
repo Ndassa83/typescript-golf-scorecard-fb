@@ -5,6 +5,7 @@ import { Button, Tabs, Tab } from "@mui/material";
 import { GolfRound, DartRound, PlayerOptionType } from "../../types";
 import { GolfRoundModal } from "./GolfRoundModal";
 import { DartRoundModal } from "./DartRoundModal";
+import { tossSum, getTossHighScore, getSetHighScore, getSoloHighScore, getThrowMap } from "../../utils/dartStatHelpers";
 import "./Dashboard.css";
 
 type Props = {
@@ -13,60 +14,6 @@ type Props = {
   currentUser: User | null;
 };
 
-const SCORES = [0, 5, 10, 20, 50, 100];
-
-const vals = (t: { values: number[] }): number[] =>
-  Array.isArray(t.values) ? t.values : [];
-
-const tossSum = (t: { values: number[] }): number =>
-  vals(t).reduce((a, b) => a + b, 0);
-
-const getThrowMap = (rounds: DartRound[]): Map<number, number> => {
-  const map = new Map<number, number>(SCORES.map((s) => [s, 0]));
-  rounds.forEach((r) =>
-    r.scores.forEach((t) =>
-      vals(t).forEach((v) => {
-        map.set(v, (map.get(v) ?? 0) + 1);
-      })
-    )
-  );
-  return map;
-};
-
-const getTossHighScore = (rounds: DartRound[]): number => {
-  let best = 0;
-  rounds.forEach((r) =>
-    r.scores.forEach((t) => {
-      const sum = tossSum(t);
-      if (sum > best) best = sum;
-    })
-  );
-  return best;
-};
-
-const getSetHighScore = (rounds: DartRound[]): number => {
-  let best = 0;
-  rounds.forEach((r) => {
-    for (let i = 0; i < r.scores.length; i += 3) {
-      const setTotal = r.scores
-        .slice(i, i + 3)
-        .reduce((sum, t) => sum + tossSum(t), 0);
-      if (setTotal > best) best = setTotal;
-    }
-  });
-  return best;
-};
-
-const getSoloHighScore = (rounds: DartRound[]): number => {
-  let best = 0;
-  rounds
-    .filter((r) => r.gameType === "Solo")
-    .forEach((r) => {
-      const total = r.scores.reduce((sum, t) => sum + tossSum(t), 0);
-      if (total > best) best = total;
-    });
-  return best;
-};
 
 const formatScoreToPar = (diff: number): { text: string; cls: string } => {
   if (diff === 0) return { text: "E", cls: "even" };
