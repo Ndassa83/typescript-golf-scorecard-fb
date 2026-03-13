@@ -1,0 +1,321 @@
+.dashboardPage {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 24px 48px;
+}
+
+.dashboardHeading {
+  font-family: 'Fredoka One', cursive;
+  font-size: 28px;
+  color: var(--green-primary);
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.dashboardCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.dashboardCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboardColTitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: 22px;
+  color: var(--green-primary);
+  border-bottom: 3px solid var(--green-primary);
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+/* Stat summary card */
+.dashboardStatCard {
+  background-color: var(--bg-cream);
+  border: 3px solid var(--green-primary);
+  border-radius: 12px;
+  box-shadow: 2px 2px 0 var(--text-dark);
+  padding: 14px 16px;
+}
+
+.dashboardStatCardTitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: 15px;
+  color: var(--text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.dashboardStatGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 16px;
+  font-size: 14px;
+}
+
+.dashboardStatLabel {
+  color: var(--text-dark);
+  text-align: left;
+}
+
+.dashboardStatValue {
+  font-weight: bold;
+  text-align: right;
+  color: var(--green-primary);
+}
+
+/* Throw distribution */
+.dashboardThrowDist {
+  margin-top: 12px;
+}
+
+.dashboardThrowDistLabel {
+  font-family: 'Fredoka One', cursive;
+  font-size: 13px;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+/* Past games */
+.pastGamesCard {
+  background-color: var(--bg-cream);
+  border: 3px solid var(--green-primary);
+  border-radius: 12px;
+  box-shadow: 2px 2px 0 var(--text-dark);
+  padding: 14px 16px;
+}
+
+.pastGamesTitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: 15px;
+  color: var(--text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.gameCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid #d8eed8;
+  background-color: white;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.gameCard:hover {
+  border-color: var(--green-primary);
+  box-shadow: 1px 1px 0 var(--green-primary);
+}
+
+.gameCard:last-of-type {
+  margin-bottom: 0;
+}
+
+.gameCardLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+}
+
+.gameCardPlayer {
+  font-weight: bold;
+  font-size: 14px;
+  color: var(--text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gameCardSub {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gameCardDate {
+  font-size: 11px;
+  color: #aaa;
+}
+
+.gameCardRight {
+  font-weight: bold;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.gameCardRight.positive {
+  color: #c0392b;
+}
+
+.gameCardRight.negative {
+  color: var(--green-primary);
+}
+
+.gameCardRight.even {
+  color: var(--text-dark);
+}
+
+.gameCardRight.win {
+  color: var(--green-primary);
+}
+
+.gameCardRight.loss {
+  color: #c0392b;
+}
+
+.gameCardRight.solo {
+  color: var(--text-dark);
+}
+
+.loadMoreBtn {
+  width: 100%;
+  margin-top: 10px;
+  font-family: 'Fredoka One', cursive !important;
+  font-size: 14px !important;
+  border: 2px solid var(--green-primary) !important;
+  color: var(--green-primary) !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+}
+
+.loadMoreBtn:hover {
+  background-color: rgba(74, 124, 63, 0.08) !important;
+}
+
+.noGames {
+  font-size: 13px;
+  color: #999;
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* Round detail modal */
+.roundModalBox {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--bg-cream);
+  border: 3px solid var(--text-dark);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--text-dark);
+  padding: 20px 24px 24px;
+  max-width: 92vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  outline: none;
+  width: fit-content;
+  min-width: 280px;
+}
+
+.roundModalClose {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text-dark);
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.roundModalClose:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.roundModalHeader {
+  margin-bottom: 4px;
+  text-align: center;
+  padding-right: 24px;
+}
+
+.roundModalTitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: 20px;
+  color: var(--green-primary);
+}
+
+.roundModalDate {
+  font-size: 13px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.roundModalResults {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.roundModalResultRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: white;
+  border: 2px solid #d8eed8;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.roundModalResultName {
+  font-weight: bold;
+  color: var(--text-dark);
+}
+
+.roundModalResultScore {
+  color: var(--text-dark);
+}
+
+/* Mobile tabs */
+.mobileTabs {
+  display: none;
+}
+
+.dashboardColMobile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .dashboardPage {
+    padding: 16px 16px 48px;
+  }
+
+  .dashboardHeading {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+
+  .dashboardCols {
+    display: none;
+  }
+
+  .mobileTabs {
+    display: block;
+    margin-bottom: 16px;
+  }
+}

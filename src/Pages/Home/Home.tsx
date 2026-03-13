@@ -3,7 +3,7 @@ import { PlayerCreator } from "./PlayerCreator";
 import { CourseCreator } from "./CourseCreator";
 
 import {
-  Player,
+  GolfRound,
   Hole,
   Course,
   CourseOptionType,
@@ -11,10 +11,12 @@ import {
   FetchedPlayer,
 } from "../../types";
 import "./Home.css";
+import { PlayerSelector } from "./PlayerSelector";
+import { Link, Route } from "react-router-dom";
+import GolfHome from "./GolfHome";
+import { Button } from "@mui/material";
 
 type HomeProps = {
-  players: Player[];
-  setPlayers: React.Dispatch<React.SetStateAction<Player[]>>;
   courseSelected: Course | null;
   setCourseSelected: React.Dispatch<React.SetStateAction<Course | null>>;
   playerOptions: PlayerOptionType[];
@@ -24,13 +26,13 @@ type HomeProps = {
   setCreatedPlayerId: React.Dispatch<React.SetStateAction<number | undefined>>;
   createdCourse: Course | null;
   setCreatedCourse: React.Dispatch<React.SetStateAction<Course | null>>;
-  playerImage: File | null;
-  setPlayerImage: React.Dispatch<React.SetStateAction<File | null>>;
+  playerImage: string | null;
+  setPlayerImage: React.Dispatch<React.SetStateAction<string | null>>;
+  currentPlayers: FetchedPlayer[];
+  setCurrentPlayers: React.Dispatch<React.SetStateAction<FetchedPlayer[]>>;
 };
 
 const Home = ({
-  players,
-  setPlayers,
   courseSelected,
   setCourseSelected,
   playerOptions,
@@ -42,34 +44,64 @@ const Home = ({
   setCreatedCourse,
   playerImage,
   setPlayerImage,
+  currentPlayers,
+  setCurrentPlayers,
 }: HomeProps) => {
   return (
-    <div className="homeContainer">
-      Create a Player or Course...
-      <div className="creatorsContainer">
-        <PlayerCreator
-          setCreatedPlayerId={setCreatedPlayerId}
-          setCreatedPlayerName={setCreatedPlayerName}
-          createdPlayerName={createdPlayerName}
-          playerOptions={playerOptions}
-          playerImage={playerImage}
-          setPlayerImage={setPlayerImage}
-        />
-        <CourseCreator
-          createdCourse={createdCourse}
-          setCreatedCourse={setCreatedCourse}
-          courseOptions={courseOptions}
-        />
+    <div className="page-container">
+      <div className="homeHero">
+        <img src="/Backyard_Sports_logo.png" alt="Backyard Sports" className="homeLogoImg" />
+        <p className="homeSubtitle">Track scores for Golf and Darts</p>
       </div>
-      Select a Course and Players to start round
-      <Selectors
-        players={players}
-        setPlayers={setPlayers}
-        playerOptions={playerOptions}
-        courseOptions={courseOptions}
-        courseSelected={courseSelected}
-        setCourseSelected={setCourseSelected}
-      />
+      <div className="two-col-layout homeLayout">
+        <div className="homeLeftCol">
+          <div className="homeStepHeader">
+            <span className="homeStepBadge">1</span>
+            <h2 className="homeHeading">Add players</h2>
+          </div>
+          <PlayerSelector
+            playerOptions={playerOptions}
+            currentPlayers={currentPlayers}
+            setCurrentPlayers={setCurrentPlayers}
+          />
+          <div className="homeCreatorRow">
+            <span className="homeSubHeading">New player?</span>
+            <PlayerCreator
+              setCreatedPlayerId={setCreatedPlayerId}
+              setCreatedPlayerName={setCreatedPlayerName}
+              createdPlayerName={createdPlayerName}
+              playerOptions={playerOptions}
+              playerImage={playerImage}
+              setPlayerImage={setPlayerImage}
+            />
+          </div>
+        </div>
+        <div className="homeRightCol">
+          <div className="homeStepHeader">
+            <span className="homeStepBadge">2</span>
+            <h2 className="homeHeading">Choose a game</h2>
+          </div>
+          {currentPlayers.length === 0 ? (
+            <p className="homeHint">Add at least one player to get started</p>
+          ) : (
+            <p className="homeHint">Ready — pick a game below</p>
+          )}
+          <div className="gameButtonGroup">
+            <Button
+              disabled={currentPlayers.length === 0}
+              className="homeGameBtn"
+            >
+              <Link to="/Golf">Golf</Link>
+            </Button>
+            <Button
+              disabled={currentPlayers.length === 0}
+              className="homeGameBtn"
+            >
+              <Link to="/Darts">Darts</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

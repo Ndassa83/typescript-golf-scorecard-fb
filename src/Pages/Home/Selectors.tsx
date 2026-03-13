@@ -1,155 +1,87 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Autocomplete, TextField, Button } from "@mui/material";
+import { useEffect } from "react";
+import { Autocomplete, TextField } from "@mui/material";
 import dayjs from "dayjs";
 import "./Selectors.css";
 import {
-  Player,
+  GolfRound,
   Course,
   CourseOptionType,
-  PlayerOptionType,
   FetchedPlayer,
 } from "../../types";
 
 type SelectorsProps = {
-  players: Player[];
-  setPlayers: React.Dispatch<React.SetStateAction<Player[]>>;
   courseSelected: Course | null;
-  setCourseSelected: React.Dispatch<React.SetStateAction<Course | null>>;
-  playerOptions: PlayerOptionType[];
+  onCourseChange: (course: Course | null) => void;
   courseOptions: CourseOptionType[];
+  currentPlayers: FetchedPlayer[];
+  playerRounds: GolfRound[];
+  setPlayerRounds: React.Dispatch<React.SetStateAction<GolfRound[]>>;
 };
 
 export const Selectors = ({
-  players,
-  setPlayers,
-  playerOptions,
   courseOptions,
   courseSelected,
-  setCourseSelected,
+  onCourseChange,
+  currentPlayers,
+  playerRounds,
+  setPlayerRounds,
 }: SelectorsProps) => {
-  const [selectedPlayer, setSelectedPlayer] = useState<FetchedPlayer | null>();
-
-  const handleSelectedPlayerChange = (
-    event: React.SyntheticEvent,
-    newValue: PlayerOptionType | null
-  ) => {
-    setSelectedPlayer(newValue?.value || null);
-  };
-
-  // updatePlayersNobutton
   useEffect(() => {
-    if (courseSelected && selectedPlayer) {
-      const newPlayer: Player = {
-        userId: selectedPlayer.userId,
-        name: selectedPlayer.userName,
-        scores: [],
-        date: dayjs().toISOString(),
-        currentCourse: courseSelected,
-        // avatar: selectedPlayer.avatar?. //i want have the image here
-      };
+    if (courseSelected) {
+      // Don't reinitialize if we already have rounds for this course (e.g. restored from storage)
+      const alreadyHasRounds =
+        playerRounds.length > 0 &&
+        playerRounds[0]?.currentCourse?.courseId === courseSelected.courseId;
+      if (alreadyHasRounds) return;
 
-      setPlayers((prevPlayers: Player[]) => [...prevPlayers, newPlayer]);
-
-      setSelectedPlayer(null);
-    } else {
+      const roundarray: GolfRound[] = [];
+      const roundDate = dayjs().toISOString();
+      currentPlayers.forEach((player) => {
+        const playerRound: GolfRound = {
+          userId: player.userId,
+          name: player.userName,
+          scores: [],
+          date: roundDate,
+          currentCourse: courseSelected,
+        };
+        roundarray.push(playerRound);
+      });
+      setPlayerRounds(roundarray);
     }
-  }, [selectedPlayer]);
-
-  // const updatePlayers = () => {
-  //   if (courseSelected && selectedPlayer) {
-  //     const newPlayer: Player = {
-  //       userId: selectedPlayer.userId,
-  //       name: selectedPlayer.userName,
-  //       scores: [],
-  //       date: dayjs().toISOString(),
-  //       currentCourse: courseSelected,
-  //     };
-
-  //     setPlayers((prevPlayers: Player[]) => [...prevPlayers, newPlayer]);
-
-  //     setSelectedPlayer(null);
-  //   } else {
-  //     alert("Please select a course.");
-  //   }
-  // };
+  }, [courseSelected]);
 
   const updateCourse = (
     event: React.SyntheticEvent,
     newValue: CourseOptionType | null
   ) => {
-    setCourseSelected(newValue?.value || null);
-    setPlayers([]);
+    onCourseChange(newValue?.value || null);
   };
 
-  const deletePlayer = (userId: number) => {
-    setPlayers(
-      players.filter((player) => {
-        if (player.userId !== userId) return player;
-      })
-    );
-  };
-  console.log(players);
+  const selectedOption =
+    courseOptions.find((o) => o.value.courseId === courseSelected?.courseId) ?? null;
+
   return (
     <div className="selectorsContainer">
       <Autocomplete
         className="courseSelector"
         options={courseOptions}
-        renderInput={(params) => <TextField {...params} label="Courses" />}
+        value={selectedOption}
+        renderInput={(params) => <TextField {...params} label="Saved Courses" />}
         onChange={updateCourse}
         size="small"
-        ListboxProps={{ style: { fontSize: "12px" } }}
+        ListboxProps={{ className: "muiListbox" }}
+        isOptionEqualToValue={(option, value) =>
+          option.value.courseId === value.value.courseId
+        }
       />
-      {courseSelected && (
-        <div className="courseDetails">
-          <div>{courseSelected?.courseName}</div>
-          <div>Holes: {courseSelected?.holes.length}</div>
-          <div>Par: {courseSelected?.totalPar}</div>
-          <div>Yards: {courseSelected?.totalYards}</div>
-        </div>
-      )}
-
-      {courseSelected && (
-        <Autocomplete
-          className="courseSelector"
-          options={playerOptions}
-          getOptionLabel={(option) => option.label}
-          renderInput={(params) => <TextField {...params} label="Players" />}
-          onChange={handleSelectedPlayerChange}
-          size="small"
-          ListboxProps={{ style: { fontSize: "12px" } }}
-        />
-      )}
-
-      {/* <Button className='button'
-        disabled={!selectedPlayer}
-        onClick={updatePlayers}
-        className="handleSelectedPlayerChangeButton"
-      >
-        + Add Player
-      </Button> */}
 
       <div className="playerDetails">
-        {players.map((player) => (
-          //if player.value.userID is in players
-          <div className="playerRow">
-            {/* <img src={player.avatar?.name} /> */}
-            <Button
-              className="button"
-              onClick={() => deletePlayer(player.userId)}
-            >
-              x
-            </Button>
-            <div key={player.userId}>{player.name}</div>
+        {currentPlayers.map((player) => (
+          <div key={player.userId} className="playerRow">
+            <div>{player.userName}</div>
           </div>
         ))}
       </div>
-
-      {courseSelected && (
-        <Button disabled={players.length === 0}>
-          <Link to="/ScoreCard">Start Round</Link>
-        </Button>
-      )}
     </div>
   );
 };

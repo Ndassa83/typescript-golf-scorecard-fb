@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   CourseOptionType,
   PlayerOptionType,
-  Player,
+  GolfRound,
   Course,
   FetchedPlayer,
   CourseRoundsMap,
@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import StatFilter from "./StatFilter";
 import OverallStats from "./OverallStats";
+import { BackyardGolfLogo } from "../../components/BackyardGolfLogo";
 import { ScoreCardTable } from "../ScoreCard/ScoreCardTable";
 import dayjs from "dayjs";
 import "./StatPage.css";
@@ -26,10 +27,10 @@ type StatPageProps = {
 };
 
 const StatPage = ({ playerOptions, courseOptions }: StatPageProps) => {
-  const [allScoreData, setAllScoreData] = useState<Player[]>([]);
-  const [filteredAllScoreData, setFilteredAllScoreData] = useState<Player[][]>(
-    []
-  );
+  const [allScoreData, setAllScoreData] = useState<GolfRound[]>([]);
+  const [filteredAllScoreData, setFilteredAllScoreData] = useState<
+    GolfRound[][]
+  >([]);
   const [selectedPlayer, setSelectedPlayer] = useState<FetchedPlayer | null>(
     null
   );
@@ -47,39 +48,30 @@ const StatPage = ({ playerOptions, courseOptions }: StatPageProps) => {
     setSelectedPlayer(newValue?.value || null);
   };
 
-  const handleSelectedCourseChange = (
-    event: React.SyntheticEvent,
-    newValue: CourseOptionType | null
-  ) => {
-    setSelectedCourse(newValue?.value || null);
+  const handleSelectedCourseChange = (course: Course | null) => {
+    setSelectedCourse(course);
   };
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(event.target.value);
   };
 
-  const getScoresData = () => {
-    const newData: any = [];
-    getDocs(
+  const getScoresData = async () => {
+    const snapshot = await getDocs(
       query(
         playerScoresCollectionRef,
         orderBy("name", "asc"),
         orderBy("date", "desc")
       )
-    ).then((snapshot) => {
-      snapshot.docs.forEach((doc: any) => {
-        const data = doc.data();
-        newData.push(data);
-      });
-    });
-
+    );
+    const newData: GolfRound[] = snapshot.docs.map((doc) => doc.data() as GolfRound);
     setAllScoreData(newData);
   };
-  useEffect(getScoresData, []);
+  useEffect(() => { getScoresData(); }, []);
 
   //getFilteredRounds
   useEffect(() => {
-    const filtered = allScoreData.filter((player: Player) => {
+    const filtered = allScoreData.filter((player: GolfRound) => {
       return (
         (selectedPlayer ? player.userId === selectedPlayer?.userId : true) &&
         (selectedCourse
@@ -101,37 +93,47 @@ const StatPage = ({ playerOptions, courseOptions }: StatPageProps) => {
       }
     });
 
-    const courseRoundArray: Player[][] = Object.values(courseRoundsMap);
+    const courseRoundArray: GolfRound[][] = Object.values(courseRoundsMap);
 
     setFilteredAllScoreData(courseRoundArray);
-  }, [selectedPlayer, selectedCourse, selectedDate]);
+  }, [selectedPlayer, selectedCourse, selectedDate, allScoreData]);
 
   return (
-    <div className="statPageContainer">
-      <div className="statContent">
-        <StatFilter
-          playerOptions={playerOptions}
-          courseOptions={courseOptions}
-          selectedDate={selectedDate}
-          handleSelectedPlayerChange={handleSelectedPlayerChange}
-          handleSelectedCourseChange={handleSelectedCourseChange}
-          handleDateChange={handleDateChange}
-        />
-        {filteredAllScoreData.map((courseScores) => {
-          return (
-            <>
-              <div className="courseName">
-                {courseScores[0].currentCourse.courseName}
-              </div>
-              <OverallStats courseScores={courseScores} />
-              <ScoreCardTable
-                courseSelected={courseScores[0].currentCourse}
-                players={courseScores}
-                showDate
-              />
-            </>
-          );
-        })}
+    <div className="page-container">
+      <BackyardGolfLogo className="gameLogo" />
+      <div className="two-col-layout statPageLayout">
+        <div className="statLeftCol">
+          <h2 className="statColHeading">Filters</h2>
+          <StatFilter
+            playerOptions={playerOptions}
+            courseOptions={courseOptions}
+            selectedDate={selectedDate}
+            handleSelectedPlayerChange={handleSelectedPlayerChange}
+            onCourseChange={handleSelectedCourseChange}
+            handleDateChange={handleDateChange}
+          />
+        </div>
+        <div className="statRightCol">
+          <h2 className="statColHeading">Results</h2>
+          {filteredAllScoreData.length === 0 && (
+            <div className="statEmptyMsg">No rounds match the current filters.</div>
+          )}
+          {filteredAllScoreData.map((courseScores, i) => {
+            return (
+              <React.Fragment key={`${courseScores[0].currentCourse.courseId}-${i}`}>
+                <div className="courseName">
+                  {courseScores[0].currentCourse.courseName}
+                </div>
+                <OverallStats courseScores={courseScores} />
+                <ScoreCardTable
+                  courseSelected={courseScores[0].currentCourse}
+                  playerRounds={courseScores}
+                  showDate
+                />
+              </React.Fragment>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
