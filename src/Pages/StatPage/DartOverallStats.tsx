@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import dayjs from "dayjs";
 import { DartRound, FetchedPlayer, playerFilteredStats, playerFilteredStatsMap } from "../../types";
+import { tossSum, getTossHighScore, getSetHighScore, getSoloHighScore, getThrowMap } from "../../utils/dartStatHelpers";
 import "./DartOverallStats.css";
 
 type DartOverallStatsProps = {
@@ -9,67 +10,6 @@ type DartOverallStatsProps = {
   selectedPlayer: FetchedPlayer | null;
 };
 
-const tossSum = (toss: DartRound["scores"][number]): number =>
-  Array.isArray(toss.values) ? toss.values.reduce((s, v) => s + v, 0) : 0;
-
-// Returns the highest single-toss total (sum of values in one toss)
-const getTossHighScore = (rounds: DartRound[]): number => {
-  let best = 0;
-  rounds.forEach((round) => {
-    round.scores.forEach((toss) => {
-      const total = tossSum(toss);
-      if (total > best) best = total;
-    });
-  });
-  return best;
-};
-
-// Returns the highest 3-toss set total (groups tosses in chunks of 3)
-const getSetHighScore = (rounds: DartRound[]): number => {
-  let best = 0;
-  rounds.forEach((round) => {
-    for (let i = 0; i + 2 < round.scores.length; i += 3) {
-      const setTotal = round.scores
-        .slice(i, i + 3)
-        .reduce((sum, toss) => sum + tossSum(toss), 0);
-      if (setTotal > best) best = setTotal;
-    }
-  });
-  return best;
-};
-
-// Returns the highest total for a solo (10-toss) round
-const getSoloHighScore = (rounds: DartRound[]): number => {
-  let best = 0;
-  rounds
-    .filter((r) => r.gameType === "Solo")
-    .forEach((round) => {
-      const total = round.scores.reduce((sum, toss) => sum + tossSum(toss), 0);
-      if (total > best) best = total;
-    });
-  return best;
-};
-
-// Counts how many times each score value was thrown across all rounds
-const getThrowMap = (rounds: DartRound[]): Map<number, number> => {
-  const map = new Map<number, number>([
-    [0, 0],
-    [5, 0],
-    [10, 0],
-    [20, 0],
-    [50, 0],
-    [100, 0],
-  ]);
-  rounds.forEach((round) => {
-    round.scores.forEach((toss) => {
-      if (!Array.isArray(toss.values)) return;
-      toss.values.forEach((v) => {
-        map.set(v, (map.get(v) ?? 0) + 1);
-      });
-    });
-  });
-  return map;
-};
 
 const buildPlayerStats = (rounds: DartRound[]): playerFilteredStatsMap => {
   const map: playerFilteredStatsMap = {};
