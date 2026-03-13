@@ -1,57 +1,57 @@
 import { Button } from "@mui/material";
-import { Course, Player } from "../../types";
+import { Course, GolfRound } from "../../types";
 import { maxScore } from "../../Constants";
 import "./PlayerScores.css";
 
 type PlayerScoresProps = {
-  players: Player[];
-  setPlayers: React.Dispatch<React.SetStateAction<Player[]>>;
+  playerRounds: GolfRound[];
+  setPlayerRounds: React.Dispatch<React.SetStateAction<GolfRound[]>>;
   currentHole: number;
   courseSelected: Course | null;
 };
 
 export const PlayerScores = ({
-  players,
-  setPlayers,
+  playerRounds,
+  setPlayerRounds,
   currentHole,
   courseSelected,
 }: PlayerScoresProps) => {
   const incrementPlayerScore = (r: number) => {
-    const updatedScores = players.map((player, index) => {
+    const updatedScores = playerRounds.map((player, index) => {
       if (r === index) {
-        if (!players[index].scores[currentHole] && courseSelected) {
-          players[index].scores[currentHole] =
+        if (!playerRounds[index].scores[currentHole] && courseSelected) {
+          playerRounds[index].scores[currentHole] =
             courseSelected.holes[currentHole].par;
         }
 
-        players[index].scores[currentHole] += 1;
+        playerRounds[index].scores[currentHole] += 1;
       }
       return player;
     });
 
-    setPlayers(updatedScores);
+    setPlayerRounds(updatedScores);
   };
   const decrementPlayerScore = (r: number) => {
-    const updatedScores = players.map((player, index) => {
+    const updatedScores = playerRounds.map((player, index) => {
       if (r === index) {
-        if (!players[index].scores[currentHole] && courseSelected) {
-          players[index].scores[currentHole] =
+        if (!playerRounds[index].scores[currentHole] && courseSelected) {
+          playerRounds[index].scores[currentHole] =
             courseSelected.holes[currentHole].par;
         }
 
-        players[index].scores[currentHole] -= 1;
+        playerRounds[index].scores[currentHole] -= 1;
       }
 
       return player;
     });
 
-    setPlayers(updatedScores);
+    setPlayerRounds(updatedScores);
   };
 
   return (
     <div className="playerBoxesContainer">
-      {players.map((player, index) => (
-        <div className="playerScoreBox">
+      {playerRounds.map((player, index) => (
+        <div key={player.userId} className="playerScoreBox">
           <div className="playerName">{player.name}</div>
 
           <div className="scoreChange">

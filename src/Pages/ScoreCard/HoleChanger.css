@@ -3,8 +3,20 @@
   flex-direction: row;
   width: fit-content;
   height: 60px;
-  background-color: #ffffff;
-  border-radius: 10px;
+  background-color: var(--bg-cream);
+  border: 3px solid var(--green-primary);
+  border-radius: 12px;
   font-weight: bold;
   align-items: center;
+  gap: 12px;
+  padding: 0 8px;
+  box-shadow: 2px 2px 0 var(--text-dark);
+  font-family: 'Fredoka One', cursive;
+}
+
+@media (max-width: 768px) {
+  .holeChange {
+    height: 48px;
+    font-size: 14px;
+  }
 }
