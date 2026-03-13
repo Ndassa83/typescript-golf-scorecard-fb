@@ -3,12 +3,13 @@ import "firebase/firestore";
 import { Firestore, CollectionReference } from "firebase/firestore";
 import { addDoc } from "firebase/firestore";
 import { Button } from "@mui/material";
-import { Player, Course } from "../../types";
+import { GolfRound, Course } from "../../types";
 import { useEffect, useState } from "react";
+import { clearStorage, GOLF_KEYS, STORAGE_KEYS } from "../../utils/localStorage";
 
 type PostRoundProps = {
-  players: Player[];
-  setPlayers: React.Dispatch<React.SetStateAction<Player[]>>;
+  playerRounds: GolfRound[];
+  setPlayerRounds: React.Dispatch<React.SetStateAction<GolfRound[]>>;
   database: Firestore;
   collectionRef: CollectionReference;
   courseSelected: Course | null;
@@ -16,14 +17,14 @@ type PostRoundProps = {
 };
 
 export const PostRound = ({
-  players,
+  playerRounds,
   collectionRef,
   courseSelected,
-  setPlayers,
+  setPlayerRounds,
   setCourseSelected,
 }: PostRoundProps) => {
   const postRound = () => {
-    players.forEach((player) => {
+    playerRounds.forEach((player) => {
       addDoc(collectionRef, player);
       alert(`${player.name} Total Shots: ${""}
       ${player.scores.reduce((acc, cur) => {
@@ -36,15 +37,16 @@ export const PostRound = ({
         }, 0) - courseSelected.totalPar
       }`);
     });
-    setPlayers([]);
+    setPlayerRounds([]);
     setCourseSelected(null);
+    clearStorage(...GOLF_KEYS, STORAGE_KEYS.GOLF_CURRENT_HOLE);
   };
 
-  const isPostDisabled = players.some((player) => {
+  const isPostDisabled = playerRounds.some((player) => {
     return player.scores.length !== player.currentCourse.holes.length;
   });
 
-  if (players.length !== 0) {
+  if (playerRounds.length !== 0) {
     return (
       <div>
         <Button

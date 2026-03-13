@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { TextField, Button, Modal, Input } from "@mui/material";
+import {
+  TextField,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Input,
+} from "@mui/material";
 import { Course, CourseOptionType, Hole } from "../../types";
 import "./Creators.css";
 
@@ -81,134 +89,127 @@ export const CourseCreator = ({
   }, [createdCourse]);
 
   return (
-    <div className="creatorsContainer">
-      <Modal open={isCourseCreatorOpen} onClose={handleCreateCourseModal}>
-        <div className="modalContainer">
-          <div className="modalContent">
-            <div className="modalText">Create your Course</div>
+    <>
+      <Button onClick={handleCreateCourseModal}>Create Course</Button>
 
-            {!isCourseNamed ? (
-              <div>
-                <TextField
-                  id="CourseNameInput"
-                  label="Course Name"
-                  variant="outlined"
-                  defaultValue={courseName}
-                  fullWidth
+      <Dialog
+        open={isCourseCreatorOpen}
+        onClose={handleCreateCourseModal}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontFamily: "'Fredoka One', cursive" }}>
+          Create your Course
+        </DialogTitle>
+
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          {!isCourseNamed ? (
+            <>
+              <TextField
+                id="CourseNameInput"
+                label="Course Name"
+                variant="outlined"
+                defaultValue={courseName}
+                fullWidth
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setCourseName(value);
+                  setCourseId(value.replace(" ", ""));
+                }}
+              />
+              <div className="holesInputRow">
+                <span>Number of holes:</span>
+                <Input
+                  className="creatorCell"
+                  value={amtCourseHoles}
+                  type="number"
                   onChange={(e) => {
-                    const value = e.target.value;
-                    setCourseName(value);
-                    setCourseId(value.replace(" ", ""));
+                    const value = Number(e.target.value);
+                    if (value >= 1 && value <= 18) {
+                      setAmtCourseHoles(value);
+                    }
                   }}
                 />
-                <div>
-                  Number of holes:{" "}
-                  <Input
-                    className="creatorCell"
-                    value={amtCourseHoles}
-                    type="number"
-                    onChange={(e) => {
-                      const value = Number(e.target.value);
-                      if (value >= 1 && value <= 18) {
-                        setAmtCourseHoles(value);
-                      }
-                    }}
-                  />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="courseCreatorName">{courseName}</div>
+              <div className="coursePropsContainer">
+                <div className="coursePropsTitlesContainer">
+                  <div className="creatorCell">Hole:</div>
+                  <div className="creatorCell titleCell">Yards:</div>
+                  <div className="creatorCell titleCell">Par:</div>
+                  <div className="creatorCell titleCell">Handicap:</div>
                 </div>
-                <div className="navButtons">
-                  <Button onClick={handleCreateCourseModal}>Close</Button>
-                  <Button
-                    className="button"
-                    // disabled={!createdCourse.courseName} issue with null
-                    onClick={handleNewCourseNameSubmit}
-                  >
-                    Next
-                  </Button>
+                {courseHoles.map((hole, index) => (
+                  <div key={hole.holeNumber} className="courseProps">
+                    <div className="creatorCell">{hole.holeNumber}</div>
+                    <Input
+                      className="creatorCell"
+                      type="number"
+                      value={hole.yards}
+                      onChange={(e) => {
+                        const newValue = Number(e.target.value);
+                        if (!!newValue) {
+                          const updatedHoles = [...courseHoles];
+                          updatedHoles[index] = { ...hole, yards: newValue };
+                          setCourseHoles(updatedHoles);
+                        }
+                      }}
+                    />
+                    <Input
+                      className="creatorCell"
+                      type="number"
+                      value={hole.par}
+                      onChange={(e) => {
+                        const newValue = Number(e.target.value);
+                        if (!!newValue) {
+                          const updatedHoles = [...courseHoles];
+                          updatedHoles[index] = { ...hole, par: newValue };
+                          setCourseHoles(updatedHoles);
+                        }
+                      }}
+                    />
+                    <Input
+                      className="creatorCell"
+                      type="number"
+                      value={hole.handicap}
+                      onChange={(e) => {
+                        const newValue = Number(e.target.value);
+                        if (!!newValue) {
+                          const updatedHoles = [...courseHoles];
+                          updatedHoles[index] = { ...hole, handicap: newValue };
+                          setCourseHoles(updatedHoles);
+                        }
+                      }}
+                    />
+                  </div>
+                ))}
+                <div className="totalCourseProps">
+                  <div className="creatorCell totalCell">Totals:</div>
+                  <div className="creatorCell totalCell">{totalYards}</div>
+                  <div className="creatorCell totalCell">{totalPar}</div>
                 </div>
               </div>
-            ) : (
-              <div>
-                <div className="courseName">{courseName} </div>
-                <div className="coursePropsContainer">
-                  <div className="coursePropsTitlesContainer">
-                    <div className="creatorCell ">Hole:</div>
-                    <div className="creatorCell titleCell">Yards:</div>
-                    <div className="creatorCell titleCell">Par:</div>
-                    <div className="creatorCell titleCell">Handicap:</div>
-                  </div>
-                  {courseHoles.map((hole, index) => (
-                    <div className="courseProps">
-                      <div className="creatorCell">{hole.holeNumber}</div>
-                      <Input
-                        className="creatorCell"
-                        type="number"
-                        value={hole.yards}
-                        onChange={(e) => {
-                          const newValue = Number(e.target.value);
-                          if (!!newValue) {
-                            const updatedHoles = [...courseHoles];
-                            updatedHoles[index] = {
-                              ...hole,
-                              yards: newValue,
-                            };
-                            setCourseHoles(updatedHoles);
-                          }
-                        }}
-                      />
-                      <Input
-                        className="creatorCell"
-                        type="number"
-                        value={hole.par}
-                        onChange={(e) => {
-                          const newValue = Number(e.target.value);
-                          if (!!newValue) {
-                            const updatedHoles = [...courseHoles];
-                            updatedHoles[index] = { ...hole, par: newValue };
-                            setCourseHoles(updatedHoles);
-                          }
-                        }}
-                      />
+            </>
+          )}
+        </DialogContent>
 
-                      <Input
-                        className="creatorCell"
-                        type="number"
-                        value={hole.handicap}
-                        onChange={(e) => {
-                          const newValue = Number(e.target.value);
-                          if (!!newValue) {
-                            const updatedHoles = [...courseHoles];
-                            updatedHoles[index] = {
-                              ...hole,
-                              handicap: newValue,
-                            };
-                            setCourseHoles(updatedHoles);
-                          }
-                        }}
-                      />
-                    </div>
-                  ))}
-                  <div className="totalCourseProps ">
-                    <div className="creatorCell totalCell">Totals:</div>
-                    <div className="creatorCell totalCell">{totalYards}</div>
-                    <div className="creatorCell totalCell">{totalPar}</div>
-                  </div>
-                </div>
-                <div className="navButtons">
-                  <Button
-                    onClick={() => {
-                      setIsCourseNamed(false);
-                    }}
-                  >
-                    Back
-                  </Button>
-                  <Button onClick={handleSubmitCourse}>Submit Course</Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </Modal>
-      <Button onClick={handleCreateCourseModal}>Create Course</Button>
-    </div>
+        <DialogActions sx={{ gap: 1, px: 3, pb: 2 }}>
+          {!isCourseNamed ? (
+            <>
+              <Button onClick={handleCreateCourseModal}>Close</Button>
+              <Button onClick={handleNewCourseNameSubmit}>Next</Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={() => setIsCourseNamed(false)}>Back</Button>
+              <Button onClick={handleSubmitCourse}>Submit Course</Button>
+            </>
+          )}
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };

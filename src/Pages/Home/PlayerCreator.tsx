@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { TextField, Button, Modal } from "@mui/material";
+import {
+  TextField,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 import SeedRandom from "seed-random";
 import { PlayerOptionType, Course, CourseOptionType } from "../../types";
 import "./Creators.css";
@@ -9,8 +16,8 @@ type PlayerCreatorProps = {
   setCreatedPlayerId: React.Dispatch<React.SetStateAction<number | undefined>>;
   createdPlayerName: string | null;
   playerOptions: PlayerOptionType[];
-  playerImage: File | null;
-  setPlayerImage: React.Dispatch<React.SetStateAction<File | null>>;
+  playerImage: string | null;
+  setPlayerImage: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 export const PlayerCreator = ({
@@ -23,7 +30,7 @@ export const PlayerCreator = ({
 }: PlayerCreatorProps) => {
   const [isPlayerCreatorOpen, setIsPlayerCreatorOpen] =
     useState<boolean>(false);
-  const [image, setImage] = useState<File | null>(null);
+  const [image, setImage] = useState<string | null>(null);
 
   const handleCreatePlayerModal = () => {
     setIsPlayerCreatorOpen((prev) => !prev);
@@ -53,38 +60,42 @@ export const PlayerCreator = ({
   };
 
   return (
-    <div className="creatorsContainer">
-      {/* create player Modal */}
-      <Modal open={isPlayerCreatorOpen} onClose={handleCreatePlayerModal}>
-        <div className="modalContainer">
-          <div className="modalContent">
-            <div className="modalText">Create your player</div>
-            <TextField
-              id="playerNameInput"
-              label="Player Name"
-              variant="outlined"
-              fullWidth
-              value={createdPlayerName}
-              onChange={(e) => setCreatedPlayerName(e.target.value)}
-            />
-            <Button variant="contained" component="label">
-              Upload File
-              <input type="file" hidden onChange={handleImageChange} />
-            </Button>
-
-            <Button
-              className="button"
-              disabled={!createdPlayerName}
-              onClick={handleNewPlayerSubmit}
-            >
-              Submit
-            </Button>
-            <Button onClick={handleCreatePlayerModal}>Close</Button>
-          </div>
-        </div>
-      </Modal>
-
+    <>
       <Button onClick={handleCreatePlayerModal}>Create Player</Button>
-    </div>
+
+      <Dialog
+        open={isPlayerCreatorOpen}
+        onClose={handleCreatePlayerModal}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontFamily: "'Fredoka One', cursive" }}>
+          Create your player
+        </DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          <TextField
+            id="playerNameInput"
+            label="Player Name"
+            variant="outlined"
+            fullWidth
+            value={createdPlayerName}
+            onChange={(e) => setCreatedPlayerName(e.target.value)}
+          />
+          <Button variant="contained" component="label">
+            Upload File
+            <input type="file" hidden onChange={handleImageChange} />
+          </Button>
+        </DialogContent>
+        <DialogActions sx={{ gap: 1, px: 3, pb: 2 }}>
+          <Button onClick={handleCreatePlayerModal}>Close</Button>
+          <Button
+            disabled={!createdPlayerName}
+            onClick={handleNewPlayerSubmit}
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
