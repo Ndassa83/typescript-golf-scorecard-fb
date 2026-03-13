@@ -4,8 +4,8 @@
 }
 
 .homeLogoImg {
-  max-width: 260px;
-  width: 100%;
+  max-width: 320px;
+  width: 80%;
   height: auto;
   margin-bottom: 6px;
 }
@@ -242,6 +242,10 @@
 }
 
 @media (max-width: 768px) {
+  .homeLogoImg {
+    max-width: 220px;
+    width: 70%;
+  }
   .homeHeading {
     font-size: 18px;
   }
