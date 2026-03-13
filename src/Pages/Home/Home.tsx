@@ -53,8 +53,8 @@ const Home = ({
         <img src="/Backyard_Sports_logo.png" className="homeLogoImg" alt="Backyard Sports"></img>
         <p className="homeSubtitle">Track scores for Golf and Darts</p>
       </div>
-      <div className="two-col-layout homeLayout">
-        <div className="homeLeftCol">
+      <div className="homeContent">
+        <div className="homeStep">
           <div className="homeStepHeader">
             <span className="homeStepBadge">1</span>
             <h2 className="homeHeading">Add players</h2>
@@ -76,7 +76,7 @@ const Home = ({
             />
           </div>
         </div>
-        <div className="homeRightCol">
+        <div className="homeStep">
           <div className="homeStepHeader">
             <span className="homeStepBadge">2</span>
             <h2 className="homeHeading">Choose a game</h2>

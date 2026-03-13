@@ -44,20 +44,19 @@
   margin: 0;
 }
 
-.homeLayout {
-  align-items: start;
+.homeContent {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 500px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.homeLeftCol,
-.homeRightCol {
+.homeStep {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.homeRightCol {
-  justify-content: center;
-  align-items: flex-start;
 }
 
 .homeHeading {
