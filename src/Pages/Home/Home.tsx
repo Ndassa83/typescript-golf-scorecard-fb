@@ -50,7 +50,7 @@ const Home = ({
   return (
     <div className="page-container">
       <div className="homeHero">
-        <h1 className="homeTitle">Backyard Scorecard</h1>
+        <img src="/Backyard_Sports_logo.png" className="homeLogoImg" alt="Backyard Sports"></img>
         <p className="homeSubtitle">Track scores for Golf and Darts</p>
       </div>
       <div className="two-col-layout homeLayout">
