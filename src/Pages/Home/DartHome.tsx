@@ -58,20 +58,16 @@ const DartHome = ({ currentPlayers, dartRoundCollection }: DartHomeProps) => {
 
   const handleGameStart = () => {
     if (currentPlayers.length > 0) {
-      const gamesArr: DartRound[] = [];
-
-      currentPlayers.forEach((player) => {
-        const game = {
-          gameType: curGameType,
-          userId: player.userId,
-          name: player.userName,
-          date: dayjs().toISOString(),
-          scores: [],
-          gameWins: 0,
-          matchWinner: false,
-        };
-        return gamesArr.push(game);
-      });
+      const roundDate = dayjs().toISOString();
+      const gamesArr: DartRound[] = currentPlayers.map((player) => ({
+        gameType: curGameType,
+        userId: player.userId,
+        name: player.userName,
+        date: roundDate,
+        scores: [],
+        gameWins: 0,
+        matchWinner: false,
+      }));
 
       setCurPlayerGames(gamesArr);
       setGameActive(true);
