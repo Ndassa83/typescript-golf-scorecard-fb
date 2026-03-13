@@ -1,0 +1,25 @@
+.throwPieChart {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 6px;
+}
+
+.throwPieSvg {
+  flex-shrink: 0;
+  width: 120px;
+  height: 120px;
+}
+
+.throwPieLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.throwPieLegendItem {
+  font-family: 'Fredoka One', cursive;
+  font-size: 15px;
+  line-height: 1.2;
+  text-align: left;
+}

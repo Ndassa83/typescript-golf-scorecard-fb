@@ -19,6 +19,8 @@ import {
   getSoloHighScore,
   getThrowMap,
 } from "../../utils/dartStatHelpers";
+import { ThrowPieChart } from "../../components/ThrowPieChart";
+import { AdminPanel } from "./AdminPanel";
 import "./Dashboard.css";
 
 const courseSelectStyles = {
@@ -240,13 +242,11 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
 
   const throwEntries = useMemo(() => {
     if (!dartStats) return [];
-    return Array.from(dartStats.throwMap.entries()).filter(
-      ([, count]) => count > 0,
-    );
+    return Array.from(dartStats.throwMap.entries());
   }, [dartStats]);
 
-  const maxThrowCount = useMemo(
-    () => Math.max(...throwEntries.map(([, c]) => c), 1),
+  const totalThrows = useMemo(
+    () => throwEntries.reduce((sum, [, c]) => sum + c, 0),
     [throwEntries],
   );
 
@@ -418,21 +418,10 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
             </div>
 
             {/* Score frequency (point spread) */}
-            {throwEntries.length > 0 && (
+            {totalThrows > 0 && (
               <div className="dashboardThrowDist">
                 <div className="dashboardThrowDistLabel">Score Frequency</div>
-                {throwEntries.map(([score, count]) => (
-                  <div key={score} className="throwRow">
-                    <span className="throwScore">{score}</span>
-                    <div className="throwBarTrack">
-                      <div
-                        className="throwBar"
-                        style={{ width: `${(count / maxThrowCount) * 100}%` }}
-                      />
-                    </div>
-                    <span className="throwCount">{count}</span>
-                  </div>
-                ))}
+                <ThrowPieChart entries={throwEntries} total={totalThrows} />
               </div>
             )}
           </>
@@ -496,6 +485,8 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
   return (
     <div className="dashboardPage">
       <div className="dashboardHeading">Dashboard</div>
+
+      {currentUser?.email === "ndassa83@gmail.com" && <AdminPanel database={database} />}
 
       {!currentUser || !linkedPlayer ? (
         <div className="noGames">

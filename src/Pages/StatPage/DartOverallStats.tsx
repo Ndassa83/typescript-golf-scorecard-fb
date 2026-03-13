@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import dayjs from "dayjs";
 import { DartRound, FetchedPlayer, playerFilteredStats, playerFilteredStatsMap } from "../../types";
 import { tossSum, getTossHighScore, getSetHighScore, getSoloHighScore, getThrowMap } from "../../utils/dartStatHelpers";
+import { ThrowPieChart } from "../../components/ThrowPieChart";
 import "./DartOverallStats.css";
 
 type DartOverallStatsProps = {
@@ -155,10 +156,8 @@ const DartOverallStats = ({
       return <div className="dartOverallStats">No rounds found for this player.</div>;
     }
 
-    const throwEntries = Array.from(stats.throwMap.entries()).filter(
-      ([, count]) => count > 0
-    );
-    const maxCount = Math.max(...throwEntries.map(([, c]) => c), 1);
+    const throwEntries = Array.from(stats.throwMap.entries());
+    const totalThrows = throwEntries.reduce((sum, [, c]) => sum + c, 0);
     const hasSolo = stats.highScoreSolo > 0;
     const hasSet = stats.highScoreSet > 0;
 
@@ -214,21 +213,10 @@ const DartOverallStats = ({
             <span className="dartStatValue">{pct(stats.missRate)}</span>
           </div>
 
-          {throwEntries.length > 0 && (
+          {totalThrows > 0 && (
             <div className="throwDistribution">
               <div className="throwDistLabel">Throw Distribution</div>
-              {throwEntries.map(([score, count]) => (
-                <div key={score} className="throwRow">
-                  <span className="throwScore">{score}</span>
-                  <div className="throwBarTrack">
-                    <div
-                      className="throwBar"
-                      style={{ width: `${(count / maxCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="throwCount">{count}</span>
-                </div>
-              ))}
+              <ThrowPieChart entries={throwEntries} total={totalThrows} />
             </div>
           )}
         </div>
