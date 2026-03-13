@@ -1,33 +1,33 @@
 import { Button } from "@mui/material";
-import { Course, Player } from "../../types";
+import { Course, GolfRound } from "../../types";
 import "./HoleChanger.css";
 
 type HoleChangerProps = {
   courseSelected: Course | null;
   currentHole: number;
   setCurrentHole: React.Dispatch<React.SetStateAction<number>>;
-  players: Player[];
-  setPlayers: React.Dispatch<React.SetStateAction<Player[]>>;
+  playerRounds: GolfRound[];
+  setPlayerRounds: React.Dispatch<React.SetStateAction<GolfRound[]>>;
 };
 
 export const HoleChanger = ({
   courseSelected,
   currentHole,
   setCurrentHole,
-  players,
-  setPlayers,
+  playerRounds,
+  setPlayerRounds,
 }: HoleChangerProps) => {
   const holeIncrementHandler = () => {
-    const updatedScores = players.map((player, index) => {
-      if (!players[index].scores[currentHole] && courseSelected) {
-        players[index].scores[currentHole] =
-          courseSelected.holes[currentHole].par;
+    const updatedScores = playerRounds.map((player) => {
+      if (!player.scores[currentHole] && courseSelected) {
+        const newScores = [...player.scores];
+        newScores[currentHole] = courseSelected.holes[currentHole].par;
+        return { ...player, scores: newScores };
       }
-
       return player;
     });
     setCurrentHole((prevHole) => prevHole + 1);
-    setPlayers(updatedScores);
+    setPlayerRounds(updatedScores);
   };
 
   return (

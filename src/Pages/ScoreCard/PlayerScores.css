@@ -3,17 +3,21 @@
   justify-content: center;
   flex-direction: column;
   align-items: center;
-  background-color: #ffffff;
-  border-radius: 10px;
-  margin: 10px;
+  background-color: var(--bg-cream);
+  border: 3px solid var(--green-primary);
+  border-radius: 12px;
+  box-shadow: 2px 2px 0 var(--text-dark);
   width: fit-content;
   height: fit-content;
 }
+
 .scoreChange {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
 }
 
 .holeChange {
@@ -21,17 +25,32 @@
   flex-direction: row;
   width: fit-content;
   height: 60px;
-  background-color: #ffffff;
-  border-radius: 10px;
+  background-color: var(--bg-cream);
+  border-radius: 12px;
   font-weight: bold;
   align-items: center;
 }
 
 .playerName {
   font-weight: bold;
+  font-family: 'Fredoka One', cursive;
   margin: 5px;
+  font-size: 16px;
+  color: var(--green-primary);
 }
+
 .playerBoxesContainer {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px;
+}
+
+@media (max-width: 768px) {
+  .playerBoxesContainer {
+    gap: 8px;
+    padding: 4px;
+  }
 }

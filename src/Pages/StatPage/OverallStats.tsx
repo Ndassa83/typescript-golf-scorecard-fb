@@ -1,9 +1,9 @@
-import { Player } from "../../types";
+import { GolfRound } from "../../types";
 
 import "./OverallStats.css";
 
 type OverallStatsProps = {
-  courseScores: Player[];
+  courseScores: GolfRound[];
 };
 
 const OverallStats = ({ courseScores }: OverallStatsProps) => {

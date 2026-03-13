@@ -1,0 +1,37 @@
+.tossInputContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  width: 100%;
+}
+
+.tossGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.tossGridClear {
+  grid-column: 1 / -1;
+}
+
+.tossTotalDisplay {
+  font-family: 'Fredoka One', cursive;
+  font-size: 16px;
+  color: var(--text-dark);
+  text-align: center;
+}
+
+.tossSubmitRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+}

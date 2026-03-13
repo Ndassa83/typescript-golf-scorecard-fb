@@ -1,35 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CollectionReference, Firestore } from "firebase/firestore";
 import { ScoreCardTable } from "./ScoreCardTable";
 import { HoleChanger } from "./HoleChanger";
 import { PlayerScores } from "./PlayerScores";
 import { PostRound } from "./PostRound";
-import { Player, Course } from "../../types";
+import { GolfRound, Course } from "../../types";
+import { saveToStorage, loadFromStorage, STORAGE_KEYS } from "../../utils/localStorage";
+import { BackyardGolfLogo } from "../../components/BackyardGolfLogo";
 import "./ScoreCard.css";
 
 type ScoreCardPageProps = {
-  players: Player[];
-  setPlayers: React.Dispatch<React.SetStateAction<Player[]>>;
+  playerRounds: GolfRound[];
+  setPlayerRounds: React.Dispatch<React.SetStateAction<GolfRound[]>>;
   courseSelected: Course | null;
   database: Firestore;
   collectionRef: CollectionReference;
   setCourseSelected: React.Dispatch<React.SetStateAction<Course | null>>;
 };
 const ScoreCardPage = ({
-  players,
-  setPlayers,
+  playerRounds,
+  setPlayerRounds,
   courseSelected,
   setCourseSelected,
   database,
   collectionRef,
 }: ScoreCardPageProps) => {
-  const [currentHole, setCurrentHole] = useState<number>(0);
+  const [currentHole, setCurrentHole] = useState<number>(
+    () => loadFromStorage<number>(STORAGE_KEYS.GOLF_CURRENT_HOLE) ?? 0
+  );
+  useEffect(() => { saveToStorage(STORAGE_KEYS.GOLF_CURRENT_HOLE, currentHole); }, [currentHole]);
 
   return (
     <div className="scoreCardContainer">
-      <div className="courseName"> {courseSelected?.courseName}</div>
+      <BackyardGolfLogo className="gameLogo" />
+      <div className="courseName">{courseSelected?.courseName}</div>
+
       <ScoreCardTable
-        players={players}
+        playerRounds={playerRounds}
         courseSelected={courseSelected}
         currentHole={currentHole}
       />
@@ -38,20 +45,20 @@ const ScoreCardPage = ({
         currentHole={currentHole}
         setCurrentHole={setCurrentHole}
         courseSelected={courseSelected}
-        players={players}
-        setPlayers={setPlayers}
+        playerRounds={playerRounds}
+        setPlayerRounds={setPlayerRounds}
       />
 
       <PlayerScores
-        players={players}
-        setPlayers={setPlayers}
+        playerRounds={playerRounds}
+        setPlayerRounds={setPlayerRounds}
         currentHole={currentHole}
         courseSelected={courseSelected}
       />
 
       <PostRound
-        players={players}
-        setPlayers={setPlayers}
+        playerRounds={playerRounds}
+        setPlayerRounds={setPlayerRounds}
         database={database}
         collectionRef={collectionRef}
         courseSelected={courseSelected}

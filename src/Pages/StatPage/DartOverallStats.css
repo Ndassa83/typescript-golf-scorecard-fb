@@ -1,0 +1,179 @@
+.dartOverallStats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.dartPlayerStats {
+  background-color: var(--bg-cream);
+  border: 3px solid var(--green-primary);
+  border-radius: 12px;
+  box-shadow: 2px 2px 0 var(--text-dark);
+  padding: 14px;
+  width: fit-content;
+  min-width: 280px;
+  margin: 0 auto;
+}
+
+.dartPlayerName {
+  font-weight: bold;
+  font-family: 'Fredoka One', cursive;
+  font-size: 18px;
+  color: var(--green-primary);
+  margin-bottom: 8px;
+  border-bottom: 2px solid var(--green-primary);
+  padding-bottom: 4px;
+}
+
+.dartStatGrid {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 16px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.dartStatLabel {
+  color: var(--text-dark);
+}
+
+.dartStatValue {
+  font-weight: bold;
+  text-align: right;
+  color: var(--green-primary);
+}
+
+.throwDistribution {
+  font-size: 13px;
+}
+
+.throwDistLabel {
+  font-weight: bold;
+  font-family: 'Fredoka One', cursive;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--text-dark);
+}
+
+.throwRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.throwScore {
+  width: 32px;
+  text-align: right;
+  font-weight: bold;
+  font-size: 12px;
+  color: var(--text-dark);
+}
+
+.throwBarTrack {
+  flex: 1;
+  height: 14px;
+  background-color: #e8e0d0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.throwBar {
+  height: 100%;
+  background-color: var(--green-primary);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.throwCount {
+  width: 28px;
+  font-size: 12px;
+  color: var(--text-dark);
+}
+
+.dartStatSub {
+  font-weight: normal;
+  font-size: 12px;
+  color: var(--text-dark);
+}
+
+.leaderboardContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+.leaderboardTable {
+  background-color: var(--bg-cream);
+  border: 3px solid var(--green-primary);
+  border-radius: 12px;
+  box-shadow: 2px 2px 0 var(--text-dark);
+  padding: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.leaderboardTitle {
+  font-weight: bold;
+  font-family: 'Fredoka One', cursive;
+  font-size: 18px;
+  color: var(--green-primary);
+  margin-bottom: 8px;
+  border-bottom: 2px solid var(--green-primary);
+  padding-bottom: 4px;
+}
+
+.leaderboardRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #e0d8c8;
+  font-size: 14px;
+}
+
+.leaderboardRow:last-child {
+  border-bottom: none;
+}
+
+.leaderboardFirst {
+  background-color: #fffbe6;
+  border-radius: 6px;
+  padding: 6px 4px;
+  margin: 0 -4px;
+}
+
+.leaderboardRank {
+  width: 28px;
+  font-weight: bold;
+  color: var(--text-dark);
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.leaderboardName {
+  flex: 1;
+  color: var(--text-dark);
+}
+
+.leaderboardStat {
+  font-weight: bold;
+  color: var(--green-primary);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .dartPlayerStats {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .leaderboardTable {
+    min-width: unset;
+    width: 100%;
+  }
+}
