@@ -17,12 +17,14 @@
   position: sticky;
   top: 70px;
   align-self: start;
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
 }
 
 .statRightCol {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -43,8 +45,188 @@
   text-align: center;
 }
 
+/* Recent Rounds card */
+.recentRoundsCard {
+  background-color: var(--bg-cream);
+  border: 3px solid var(--green-primary);
+  border-radius: 12px;
+  box-shadow: 2px 2px 0 var(--text-dark);
+  padding: 14px 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.recentRoundsHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.recentRoundsTitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: 15px;
+  color: var(--text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.recentToggleBtn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--green-primary);
+  cursor: pointer;
+  padding: 2px 4px;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.recentRoundRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid #d8eed8;
+  background-color: white;
+  margin-bottom: 8px;
+}
+
+.recentRoundRow:last-of-type {
+  margin-bottom: 0;
+}
+
+.recentRoundLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.recentRoundPlayer {
+  font-weight: bold;
+  font-size: 14px;
+  color: var(--text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recentRoundSub {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recentRoundDate {
+  font-size: 11px;
+  color: #aaa;
+}
+
+.recentRoundScore {
+  font-weight: bold;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.recentRoundScore.positive { color: #c0392b; }
+.recentRoundScore.negative { color: var(--green-primary); }
+.recentRoundScore.even     { color: var(--text-dark); }
+
+.recentEmpty {
+  font-size: 13px;
+  color: #999;
+  text-align: center;
+  padding: 12px 0;
+}
+
+.recentGroupCard {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid #d8eed8;
+  background-color: white;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.recentGroupCard:hover {
+  border-color: var(--green-primary);
+  box-shadow: 1px 1px 0 var(--green-primary);
+}
+
+.recentGroupCard:last-of-type {
+  margin-bottom: 0;
+}
+
+.recentGroupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.recentGroupPlayerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+/* Page break divider */
+.statPageDivider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 40px 0 28px;
+}
+
+.statPageDivider::before,
+.statPageDivider::after {
+  content: '';
+  flex: 1;
+  height: 3px;
+  background: var(--green-primary);
+  border-radius: 2px;
+}
+
+.statPageDividerLabel {
+  font-family: 'Fredoka One', cursive;
+  font-size: 22px;
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+/* Filter + stats bottom section */
+.statFilterSection {
+  margin-bottom: 24px;
+}
+
+.statStatsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 @media (max-width: 768px) {
   .statLeftCol {
     position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .recentToggleBtn {
+    display: block;
+  }
+
+  .statPageDividerLabel {
+    font-size: 18px;
   }
 }

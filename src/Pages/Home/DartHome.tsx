@@ -28,9 +28,10 @@ type DartHomeProps = {
   currentPlayers: FetchedPlayer[];
   setCurrentPlayers: React.Dispatch<React.SetStateAction<FetchedPlayer[]>>;
   dartRoundCollection: CollectionReference;
+  currentUserEmail: string | null;
 };
 
-const DartHome = ({ currentPlayers, dartRoundCollection }: DartHomeProps) => {
+const DartHome = ({ currentPlayers, dartRoundCollection, currentUserEmail }: DartHomeProps) => {
   const [curGameType, setCurGameType] = useState<string>(
     () => loadFromStorage<string>(STORAGE_KEYS.DARTS_CUR_GAME_TYPE) ?? "Full Match"
   );
@@ -134,6 +135,7 @@ const DartHome = ({ currentPlayers, dartRoundCollection }: DartHomeProps) => {
           setCurPlayerGames={setCurPlayerGames}
           curGameType={curGameType}
           dartRoundCollection={dartRoundCollection}
+          currentUserEmail={currentUserEmail}
         />
       )}
     </div>

@@ -148,10 +148,11 @@ export const CourseCreator = ({
                     <Input
                       className="creatorCell"
                       type="number"
-                      value={hole.yards}
+                      value={hole.yards === 0 ? "" : hole.yards}
+                      placeholder="0"
                       onChange={(e) => {
-                        const newValue = Number(e.target.value);
-                        if (!!newValue) {
+                        const newValue = e.target.value === "" ? 0 : Number(e.target.value);
+                        if (!isNaN(newValue)) {
                           const updatedHoles = [...courseHoles];
                           updatedHoles[index] = { ...hole, yards: newValue };
                           setCourseHoles(updatedHoles);
@@ -161,10 +162,11 @@ export const CourseCreator = ({
                     <Input
                       className="creatorCell"
                       type="number"
-                      value={hole.par}
+                      value={hole.par === 0 ? "" : hole.par}
+                      placeholder="0"
                       onChange={(e) => {
-                        const newValue = Number(e.target.value);
-                        if (!!newValue) {
+                        const newValue = e.target.value === "" ? 0 : Number(e.target.value);
+                        if (!isNaN(newValue)) {
                           const updatedHoles = [...courseHoles];
                           updatedHoles[index] = { ...hole, par: newValue };
                           setCourseHoles(updatedHoles);
@@ -176,8 +178,8 @@ export const CourseCreator = ({
                       type="number"
                       value={hole.handicap}
                       onChange={(e) => {
-                        const newValue = Number(e.target.value);
-                        if (!!newValue) {
+                        const newValue = e.target.value === "" ? 0 : Number(e.target.value);
+                        if (!isNaN(newValue)) {
                           const updatedHoles = [...courseHoles];
                           updatedHoles[index] = { ...hole, handicap: newValue };
                           setCourseHoles(updatedHoles);
