@@ -91,7 +91,7 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
     const totalTossSum = allTosses.reduce((sum, t) => sum + tossSum(t), 0);
     const avgTossScore = totalTossCount > 0 ? totalTossSum / totalTossCount : 0;
 
-    const allDartValues = myDartRounds.flatMap((r) => r.scores.flatMap((t) => vals(t)));
+    const allDartValues = myDartRounds.flatMap((r) => r.scores.flatMap((t) => Array.isArray(t.values) ? t.values : []));
     const totalDarts = allDartValues.length;
     const bullRate = totalDarts > 0 ? (allDartValues.filter((v) => v === 50 || v === 100).length / totalDarts) * 100 : 0;
     const missRate = totalDarts > 0 ? (allDartValues.filter((v) => v === 0).length / totalDarts) * 100 : 0;
