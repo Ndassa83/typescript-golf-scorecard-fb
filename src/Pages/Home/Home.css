@@ -210,6 +210,12 @@
   gap: 2px;
 }
 
+.readyCourseNameRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 .readyCourseName {
   font-size: 15px;
   font-weight: bold;

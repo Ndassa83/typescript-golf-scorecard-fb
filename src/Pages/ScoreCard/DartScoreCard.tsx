@@ -14,12 +14,14 @@ type DartScoreCardProps = {
   setCurPlayerGames: React.Dispatch<React.SetStateAction<DartRound[]>>;
   curGameType: string;
   dartRoundCollection: CollectionReference;
+  currentUserEmail: string | null;
 };
 const DartScoreCard = ({
   curPlayerGames,
   setCurPlayerGames,
   curGameType,
   dartRoundCollection,
+  currentUserEmail,
 }: DartScoreCardProps) => {
   const [currentToss, setCurrentToss] = useState<number>(
     () => loadFromStorage<number>(STORAGE_KEYS.DARTS_CURRENT_TOSS) ?? 0
@@ -105,6 +107,7 @@ const DartScoreCard = ({
           checkIfWinner={checkIfWinner}
           setWinningPlayer={setWinningPlayer}
           winningPlayer={winningPlayer}
+          currentUserEmail={currentUserEmail}
         />
       </div>
 

@@ -21,6 +21,7 @@ type DartScoreCardTableProps = {
   winningPlayer: DartRound | null;
   dartRoundCollection: CollectionReference;
   checkIfWinner: () => void;
+  currentUserEmail: string | null;
 };
 export const DartScoreCardTable = ({
   curPlayerGames,
@@ -36,6 +37,7 @@ export const DartScoreCardTable = ({
   setWinningPlayer,
   winningPlayer,
   checkIfWinner,
+  currentUserEmail,
 }: DartScoreCardTableProps) => {
   const totalPlayerScores: number[] = curPlayerGames.map((player) => {
     return player.scores
@@ -202,6 +204,7 @@ export const DartScoreCardTable = ({
         setGameLength={setGameLength}
         setCurrentToss={setCurrentToss}
         currentToss={currentToss}
+        currentUserEmail={currentUserEmail}
       />
     </div>
   );

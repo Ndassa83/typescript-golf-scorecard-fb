@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Button,
   Dialog,
@@ -7,8 +7,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
 import { CourseCreator } from "./CourseCreator";
+import { CourseEditor } from "./CourseEditor";
 import CourseSearch from "./CourseSearch";
 import { clearStorage, GOLF_KEYS } from "../../utils/localStorage";
 import dayjs from "dayjs";
@@ -31,6 +35,7 @@ type GolfHomeProps = {
   setCurrentPlayers: React.Dispatch<React.SetStateAction<FetchedPlayer[]>>;
   playerRounds: GolfRound[];
   setPlayerRounds: React.Dispatch<React.SetStateAction<GolfRound[]>>;
+  onUpdateCourse: (course: Course) => void;
 };
 
 const GolfHome = ({
@@ -42,32 +47,14 @@ const GolfHome = ({
   currentPlayers,
   playerRounds,
   setPlayerRounds,
+  onUpdateCourse,
 }: GolfHomeProps) => {
   const navigate = useNavigate();
   const [pendingCourse, setPendingCourse] = useState<Course | null>(null);
   const [showDiscardModal, setShowDiscardModal] = useState(
     () => playerRounds.length > 0
   );
-
-  // Initialize player rounds when a course is selected
-  useEffect(() => {
-    if (courseSelected) {
-      const alreadyHasRounds =
-        playerRounds.length > 0 &&
-        playerRounds[0]?.currentCourse?.courseId === courseSelected.courseId;
-      if (alreadyHasRounds) return;
-
-      const roundDate = dayjs().toISOString();
-      const roundarray: GolfRound[] = currentPlayers.map((player) => ({
-        userId: player.userId,
-        name: player.userName,
-        scores: [],
-        date: roundDate,
-        currentCourse: courseSelected,
-      }));
-      setPlayerRounds(roundarray);
-    }
-  }, [courseSelected]);
+  const [editingCourse, setEditingCourse] = useState(false);
 
   const handleCourseSelect = (course: Course | null) => {
     if (playerRounds.length > 0) {
@@ -84,6 +71,20 @@ const GolfHome = ({
     setCourseSelected(pendingCourse);
     setShowDiscardModal(false);
     setPendingCourse(null);
+  };
+
+  const handleStartRound = () => {
+    if (!courseSelected) return;
+    const roundDate = dayjs().toISOString();
+    const roundarray: GolfRound[] = currentPlayers.map((player) => ({
+      userId: player.userId,
+      name: player.userName,
+      scores: [],
+      date: roundDate,
+      currentCourse: courseSelected,
+    }));
+    setPlayerRounds(roundarray);
+    navigate("/ScoreCard");
   };
 
   const canStart = courseSelected && currentPlayers.length > 0;
@@ -137,7 +138,20 @@ const GolfHome = ({
               <span className="readyLabel">Course</span>
               {courseSelected ? (
                 <div className="readyCourseInfo">
-                  <span className="readyCourseName">{courseSelected.courseName}</span>
+                  <div className="readyCourseNameRow">
+                    <span className="readyCourseName">{courseSelected.courseName}</span>
+                    {!courseSelected.courseId.startsWith("api-") && (
+                      <Tooltip title="Edit course">
+                        <IconButton
+                          size="small"
+                          onClick={() => setEditingCourse(true)}
+                          sx={{ ml: 0.5, p: 0.25 }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </div>
                   <span className="readyCourseDetails">
                     {courseSelected.holes.length} holes &nbsp;·&nbsp; Par {courseSelected.totalPar}
                     {courseSelected.totalYards ? ` · ${courseSelected.totalYards} yds` : ""}
@@ -151,15 +165,25 @@ const GolfHome = ({
 
           <Button
             variant="contained"
-            component={Link}
-            to="/ScoreCard"
             disabled={!canStart}
             className="startRoundBtn"
+            onClick={handleStartRound}
           >
             Start Round
           </Button>
         </div>
       </div>
+
+      {editingCourse && courseSelected && (
+        <CourseEditor
+          course={courseSelected}
+          onSave={(updated) => {
+            onUpdateCourse(updated);
+            setEditingCourse(false);
+          }}
+          onClose={() => setEditingCourse(false)}
+        />
+      )}
 
       <Dialog open={showDiscardModal} onClose={() => setShowDiscardModal(false)}>
         <DialogTitle>Active Round in Progress</DialogTitle>

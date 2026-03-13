@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Autocomplete, TextField, Button } from "@mui/material";
+import { Autocomplete, TextField, Chip } from "@mui/material";
 import "./Selectors.css";
 import { PlayerOptionType, FetchedPlayer } from "../../types";
 
@@ -51,16 +51,12 @@ export const PlayerSelector = ({
 
       <div className="playerDetails">
         {currentPlayers?.map((player) => (
-          //if player.value.userID is in players
-          <div key={player.userId} className="playerRow">
-            <Button
-              className="button"
-              onClick={() => handleDeletePlayer(player.userId)}
-            >
-              x
-            </Button>
-            <div>{player.userName}</div>
-          </div>
+          <Chip
+            key={player.userId}
+            label={player.userName}
+            onDelete={() => handleDeletePlayer(player.userId)}
+            className="playerChip"
+          />
         ))}
       </div>
     </div>

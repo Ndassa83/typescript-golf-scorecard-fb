@@ -50,7 +50,7 @@ const Home = ({
   return (
     <div className="page-container">
       <div className="homeHero">
-        <img src="/Backyard_Sports_logo.png" alt="Backyard Sports" className="homeLogoImg" />
+        <h1 className="homeTitle">Backyard Scorecard</h1>
         <p className="homeSubtitle">Track scores for Golf and Darts</p>
       </div>
       <div className="two-col-layout homeLayout">
@@ -90,14 +90,18 @@ const Home = ({
             <Button
               disabled={currentPlayers.length === 0}
               className="homeGameBtn"
+              component={Link}
+              to="/Golf"
             >
-              <Link to="/Golf">Golf</Link>
+              Golf
             </Button>
             <Button
               disabled={currentPlayers.length === 0}
               className="homeGameBtn"
+              component={Link}
+              to="/Darts"
             >
-              <Link to="/Darts">Darts</Link>
+              Darts
             </Button>
           </div>
         </div>

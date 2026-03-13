@@ -1,6 +1,8 @@
 .filterWrapper {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
   border: 3px solid var(--green-primary);
   border-radius: 12px;
@@ -11,100 +13,60 @@
   box-sizing: border-box;
 }
 
-.courseFilterSearch {
-  position: relative;
-  width: 100%;
-}
-
-.courseSearchInput {
-  width: 100%;
-  background-color: #ffffff;
-  border-radius: 8px;
-}
-
-.courseFilterSelected {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #ffffff;
-  border: 1px solid #c4c4c4;
-  border-radius: 8px;
-  padding: 4px 8px;
-  min-height: 40px;
-}
-
-.courseFilterSelectedName {
-  font-size: 13px;
-  color: var(--text-dark);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.courseSearchDropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  width: 100%;
-  background-color: var(--bg-cream);
-  border: 3px solid var(--green-primary);
-  border-radius: 10px;
-  box-shadow: 3px 3px 0 var(--text-dark);
-  z-index: 500;
-  overflow: hidden;
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-.courseDropdownSection {
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: uppercase;
-  color: #888;
-  padding: 6px 12px 2px;
-  background-color: var(--bg-cream);
-}
-
-.courseSearchResult {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 12px;
-  cursor: pointer;
-  border-bottom: 1px solid #ddd;
-  transition: background-color 0.15s;
-}
-
-.courseSearchResult:last-child {
-  border-bottom: none;
-}
-
-.courseSearchResult:hover {
-  background-color: var(--yellow-accent);
-}
-
-.courseSearchName {
-  font-weight: bold;
-  font-size: 13px;
-  color: var(--text-dark);
-}
-
-.courseSearchMeta {
-  font-size: 11px;
-  color: #666;
-  margin-top: 2px;
-}
-
-.textField {
-  width: 100%;
-  background-color: #ffffff;
-  border-radius: 8px;
+.courseSelector {
+  flex: 1;
+  min-width: 160px;
 }
 
 .muiListbox {
   font-size: 12px !important;
 }
 
-.courseSelector {
-  width: 100%;
+.dateRangeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 200px;
 }
 
+.dateInput {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 2px solid #d8eed8;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-dark);
+  background: white;
+  outline: none;
+  font-family: inherit;
+}
+
+.dateInput:hover,
+.dateInput:focus {
+  border-color: var(--green-primary);
+}
+
+.dateRangeSep {
+  font-size: 13px;
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+.clearFiltersBtn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #c0392b;
+  cursor: pointer;
+  padding: 0 4px;
+  text-align: left;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.clearFiltersBtn:hover {
+  text-decoration: underline;
+}
