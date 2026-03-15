@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import "firebase/firestore";
-import { Firestore, CollectionReference, addDoc, getDocs } from "firebase/firestore";
+import { Firestore, CollectionReference, collection, addDoc, getDocs, doc, updateDoc, increment, query, where } from "firebase/firestore";
 import { Button, Modal } from "@mui/material";
-import { GolfRound, Course } from "../../types";
+import { GolfRound, Course, Tournament } from "../../types";
 import { useState } from "react";
-import { clearStorage, GOLF_KEYS, STORAGE_KEYS } from "../../utils/localStorage";
+import { clearStorage, GOLF_KEYS, STORAGE_KEYS, TOURNAMENT_KEYS } from "../../utils/localStorage";
 import "./PostRound.css";
 
 type PostRoundProps = {
@@ -15,6 +15,8 @@ type PostRoundProps = {
   courseSelected: Course | null;
   setCourseSelected: React.Dispatch<React.SetStateAction<Course | null>>;
   currentUserEmail: string | null;
+  activeTournament: Tournament | null;
+  setActiveTournament: React.Dispatch<React.SetStateAction<Tournament | null>>;
 };
 
 type ResultRow = {
@@ -67,6 +69,9 @@ export const PostRound = ({
   setPlayerRounds,
   setCourseSelected,
   currentUserEmail,
+  activeTournament,
+  setActiveTournament,
+  database,
 }: PostRoundProps) => {
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
@@ -91,16 +96,34 @@ export const PostRound = ({
 
     await Promise.all(playerRounds.map((player) => addDoc(collectionRef, player)));
 
+    // Clear storage immediately so a page-refresh can't re-post the same rounds
+    clearStorage(...GOLF_KEYS, STORAGE_KEYS.GOLF_CURRENT_HOLE);
+
+    // Increment tournament round count if this was a tournament round
+    const tournamentId = playerRounds[0]?.tournamentId;
+    if (tournamentId) {
+      const tSnap = await getDocs(
+        query(collection(database, "tournaments"), where("tournamentId", "==", tournamentId))
+      );
+      if (!tSnap.empty) {
+        await updateDoc(tSnap.docs[0].ref, { roundCount: increment(1) });
+        setActiveTournament((prev) =>
+          prev ? { ...prev, roundCount: prev.roundCount + 1 } : prev
+        );
+      }
+    }
+
     setResults(computed);
     setPosting(false);
     setModalOpen(true);
   };
 
   const goHome = () => {
+    const isTournament = !!playerRounds[0]?.tournamentId;
     setPlayerRounds([]);
     setCourseSelected(null);
     clearStorage(...GOLF_KEYS, STORAGE_KEYS.GOLF_CURRENT_HOLE);
-    navigate("/");
+    navigate(isTournament ? "/Tournament" : "/");
   };
 
   const shareText = courseSelected
@@ -111,6 +134,8 @@ export const PostRound = ({
     navigator.clipboard.writeText(shareText).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      console.error("Clipboard write failed");
     });
   };
 

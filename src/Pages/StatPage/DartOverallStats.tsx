@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { DartRound, FetchedPlayer, playerFilteredStats, playerFilteredStatsMap } from "../../types";
 import { tossSum, getTossHighScore, getSetHighScore, getSoloHighScore, getThrowMap } from "../../utils/dartStatHelpers";
@@ -134,6 +134,8 @@ const DartOverallStats = ({
   allScoreData,
   selectedPlayer,
 }: DartOverallStatsProps) => {
+  const [activeIdx, setActiveIdx] = useState(0);
+
   // Always build stats from all data for leaderboard; use filtered for detail view
   const allPlayerStatsMap = useMemo(
     () => buildPlayerStats(allScoreData),
@@ -230,68 +232,46 @@ const DartOverallStats = ({
   }
 
   const allStats = Object.values(allPlayerStatsMap);
-  const sorted = <T,>(key: keyof playerFilteredStats, display: (s: playerFilteredStats) => string, filterFn?: (s: playerFilteredStats) => boolean): LeaderboardEntry[] =>
+  const sorted = (key: keyof playerFilteredStats, display: (s: playerFilteredStats) => string, filterFn?: (s: playerFilteredStats) => boolean): LeaderboardEntry[] =>
     (filterFn ? allStats.filter(filterFn) : allStats)
       .filter((s) => (s[key] as number) > 0)
       .sort((a, b) => (b[key] as number) - (a[key] as number))
       .map((s) => ({ stats: s, displayValue: display(s) }));
 
-  const hasSet = allStats.some((s) => s.highScoreSet > 0);
-  const hasSolo = allStats.some((s) => s.highScoreSolo > 0);
+  type DartCategoryDef = { label: string; description: string; entries: LeaderboardEntry[] };
+
+  const allCategories: DartCategoryDef[] = [
+    { label: "Match Wins", description: "Total matches won across all game types.", entries: sorted("totalMatchWins", (s) => `${s.totalMatchWins} wins${s.totalMatchesPlayed > 0 ? ` · ${pct(s.matchWinPct)} win rate` : ""}`) },
+    { label: "Win %", description: "Match win percentage (min. 1 match played).", entries: sorted("matchWinPct", (s) => `${pct(s.matchWinPct)} (${s.totalMatchWins}/${s.totalMatchesPlayed})`, (s) => s.totalMatchesPlayed >= 1) },
+    { label: "Game Wins", description: "Total individual game or set wins.", entries: sorted("totalGameWins", (s) => `${s.totalGameWins}`) },
+    { label: "Win Streak", description: "Longest consecutive match win streak on record.", entries: sorted("longestWinStreak", (s) => `${s.longestWinStreak} in a row`) },
+    { label: "Best Toss", description: "Highest single 3-dart toss score ever recorded.", entries: sorted("highScoreToss", (s) => `${s.highScoreToss} pts`) },
+    { label: "Avg Toss", description: "Average points scored per toss across all rounds.", entries: sorted("avgTossScore", (s) => `${dec(s.avgTossScore)} pts/toss`) },
+    { label: "Bull Rate", description: "Percentage of darts landing on 50 or 100.", entries: sorted("bullRate", (s) => pct(s.bullRate)) },
+    { label: "Rounds", description: "Total number of rounds participated in.", entries: sorted("totalRoundsPlayed", (s) => `${s.totalRoundsPlayed} rounds`) },
+    { label: "Best Set", description: "Highest combined score across a 3-toss set.", entries: sorted("highScoreSet", (s) => `${s.highScoreSet} pts`) },
+    { label: "Best Solo", description: "Highest total score recorded in a Solo game.", entries: sorted("highScoreSolo", (s) => `${s.highScoreSolo} pts`) },
+  ].filter((cat) => cat.entries.length > 0);
+
+  const clampedIdx = Math.min(activeIdx, allCategories.length - 1);
+  const active = allCategories[clampedIdx];
 
   return (
     <div className="dartOverallStats">
-      <div className="leaderboardContainer">
-        <LeaderboardTable
-          title="Most Match Wins"
-          entries={sorted("totalMatchWins", (s) =>
-            `${s.totalMatchWins} wins${s.totalMatchesPlayed > 0 ? ` · ${pct(s.matchWinPct)} win rate` : ""}`
-          )}
-        />
-        <LeaderboardTable
-          title="Best Match Win %"
-          entries={sorted(
-            "matchWinPct",
-            (s) => `${pct(s.matchWinPct)} (${s.totalMatchWins}/${s.totalMatchesPlayed})`,
-            (s) => s.totalMatchesPlayed >= 1
-          )}
-        />
-        <LeaderboardTable
-          title="Most Game Wins"
-          entries={sorted("totalGameWins", (s) => `${s.totalGameWins}`)}
-        />
-        <LeaderboardTable
-          title="Longest Win Streak"
-          entries={sorted("longestWinStreak", (s) => `${s.longestWinStreak} in a row`)}
-        />
-        <LeaderboardTable
-          title="Best Single Toss"
-          entries={sorted("highScoreToss", (s) => `${s.highScoreToss} pts`)}
-        />
-        <LeaderboardTable
-          title="Highest Avg Toss Score"
-          entries={sorted("avgTossScore", (s) => `${dec(s.avgTossScore)} pts/toss`)}
-        />
-        <LeaderboardTable
-          title="Best Bull Rate"
-          entries={sorted("bullRate", (s) => pct(s.bullRate))}
-        />
-        <LeaderboardTable
-          title="Most Rounds Played"
-          entries={sorted("totalRoundsPlayed", (s) => `${s.totalRoundsPlayed} rounds`)}
-        />
-        {hasSet && (
-          <LeaderboardTable
-            title="Best Set Score"
-            entries={sorted("highScoreSet", (s) => `${s.highScoreSet} pts`)}
-          />
-        )}
-        {hasSolo && (
-          <LeaderboardTable
-            title="Best Solo Score"
-            entries={sorted("highScoreSolo", (s) => `${s.highScoreSolo} pts`)}
-          />
-        )}
+      <div className="leaderboardDashboard">
+        <div className="leaderboardChips">
+          {allCategories.map((cat, i) => (
+            <button
+              key={cat.label}
+              className={`leaderboardChip${i === clampedIdx ? " active" : ""}`}
+              onClick={() => setActiveIdx(i)}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+        <p className="leaderboardDescription">{active.description}</p>
+        <LeaderboardTable title={active.label} entries={active.entries} />
       </div>
     </div>
   );

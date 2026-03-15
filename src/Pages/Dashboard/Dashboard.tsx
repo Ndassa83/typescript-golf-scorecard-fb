@@ -1,15 +1,24 @@
 import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import {
   Firestore,
   collection,
   getDocs,
   query,
   orderBy,
+  where,
 } from "firebase/firestore";
 import { User } from "firebase/auth";
-import { Button, Tabs, Tab } from "@mui/material";
+import { Button, Tabs, Tab, useMediaQuery } from "@mui/material";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import Select from "react-select";
-import { GolfRound, DartRound, PlayerOptionType } from "../../types";
+import {
+  GolfRound,
+  DartRound,
+  PlayerOptionType,
+  TournamentBadge,
+  Tournament,
+} from "../../types";
 import { GolfRoundModal } from "./GolfRoundModal";
 import { DartRoundModal } from "./DartRoundModal";
 import {
@@ -47,7 +56,11 @@ const courseSelectStyles = {
         : "white",
     color: state.isSelected ? "white" : "var(--text-dark)",
   }),
-  placeholder: (base: React.CSSProperties) => ({ ...base, fontSize: 13, color: "#aaa" }),
+  placeholder: (base: React.CSSProperties) => ({
+    ...base,
+    fontSize: 13,
+    color: "#aaa",
+  }),
   singleValue: (base: React.CSSProperties) => ({ ...base, fontSize: 13 }),
 };
 
@@ -55,6 +68,7 @@ type Props = {
   database: Firestore;
   playerOptions: PlayerOptionType[];
   currentUser: User | null;
+  onSignIn: () => void;
 };
 
 const formatScoreToPar = (diff: number): { text: string; cls: string } => {
@@ -72,9 +86,16 @@ const formatDate = (dateStr: string): string => {
   });
 };
 
-const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
+const Dashboard = ({
+  database,
+  playerOptions,
+  currentUser,
+  onSignIn,
+}: Props) => {
   const [golfRounds, setGolfRounds] = useState<GolfRound[]>([]);
   const [dartRounds, setDartRounds] = useState<DartRound[]>([]);
+  const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
+  const [myBadges, setMyBadges] = useState<TournamentBadge[]>([]);
   const [golfVisible, setGolfVisible] = useState(5);
   const [dartVisible, setDartVisible] = useState(5);
   const [activeTab, setActiveTab] = useState<"golf" | "darts">("golf");
@@ -84,6 +105,7 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
   const [selectedDartRound, setSelectedDartRound] = useState<DartRound | null>(
     null,
   );
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const [golfCourseFilter, setGolfCourseFilter] = useState<string | null>(null);
   const [golfDateFrom, setGolfDateFrom] = useState("");
   const [golfDateTo, setGolfDateTo] = useState("");
@@ -117,7 +139,10 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
     myGolfRounds.forEach((r) => {
       if (!seen.has(r.currentCourse.courseName)) {
         seen.add(r.currentCourse.courseName);
-        opts.push({ value: r.currentCourse.courseName, label: r.currentCourse.courseName });
+        opts.push({
+          value: r.currentCourse.courseName,
+          label: r.currentCourse.courseName,
+        });
       }
     });
     return opts.sort((a, b) => a.label.localeCompare(b.label));
@@ -126,7 +151,9 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
   const filteredGolfRounds = useMemo(() => {
     let rounds = myGolfRounds;
     if (golfCourseFilter) {
-      rounds = rounds.filter((r) => r.currentCourse.courseName === golfCourseFilter);
+      rounds = rounds.filter(
+        (r) => r.currentCourse.courseName === golfCourseFilter,
+      );
     }
     if (golfDateFrom) {
       rounds = rounds.filter((r) => r.date >= golfDateFrom);
@@ -145,11 +172,70 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
       getDocs(
         query(collection(database, "dartRounds"), orderBy("date", "desc")),
       ),
-    ]).then(([golfSnap, dartSnap]) => {
+      getDocs(
+        query(
+          collection(database, "tournaments"),
+          orderBy("createdAt", "desc"),
+        ),
+      ),
+    ]).then(([golfSnap, dartSnap, tournSnap]) => {
       setGolfRounds(golfSnap.docs.map((d) => d.data() as GolfRound));
       setDartRounds(dartSnap.docs.map((d) => d.data() as DartRound));
+      setAllTournaments(tournSnap.docs.map((d) => d.data() as Tournament));
     });
   }, [database]);
+
+  useEffect(() => {
+    if (!linkedPlayer) return;
+    getDocs(
+      query(
+        collection(database, "userList"),
+        where("userId", "==", linkedPlayer.userId),
+      ),
+    ).then((snap) => {
+      const data = snap.docs[0]?.data();
+      setMyBadges(data?.badges ?? []);
+    });
+  }, [linkedPlayer?.userId]);
+
+  const myTournaments = useMemo(
+    () =>
+      linkedPlayer
+        ? allTournaments.filter((t) =>
+            t.participantIds.includes(linkedPlayer.userId),
+          )
+        : [],
+    [allTournaments, linkedPlayer],
+  );
+
+  const existingTournamentIds = useMemo(
+    () => new Set(allTournaments.map((t) => t.tournamentId)),
+    [allTournaments],
+  );
+
+  const tournamentMap = useMemo(
+    () => Object.fromEntries(allTournaments.map((t) => [t.tournamentId, t])),
+    [allTournaments],
+  );
+
+  // Map tournamentId → sorted unique session timestamps (all players in one round share the exact same timestamp)
+  const tournamentSessionMap = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    golfRounds.forEach((r) => {
+      if (r.tournamentId) {
+        if (!map[r.tournamentId]) map[r.tournamentId] = [];
+        if (!map[r.tournamentId].includes(r.date))
+          map[r.tournamentId].push(r.date);
+      }
+    });
+    Object.values(map).forEach((dates) => dates.sort());
+    return map;
+  }, [golfRounds]);
+
+  const validBadges = useMemo(
+    () => myBadges.filter((b) => existingTournamentIds.has(b.tournamentId)),
+    [myBadges, existingTournamentIds],
+  );
 
   // Golf stats
   const golfStats = useMemo(() => {
@@ -275,7 +361,73 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
         ) : (
           <div className="noGames">No rounds recorded yet.</div>
         )}
+        {validBadges.length > 0 && (
+          <div className="dashboardTrophySection">
+            <div className="dashboardTrophyTitle">Trophies</div>
+            <div className="dashboardTrophyList">
+              {validBadges.map((b) => (
+                <div
+                  key={b.tournamentId}
+                  className="dashboardTrophyBadge"
+                  title={`Won ${new Date(b.awardedAt).toLocaleDateString()}`}
+                >
+                  <EmojiEventsIcon fontSize="small" sx={{ color: "#d4af37" }} />
+                  <span className="dashboardTrophyName">
+                    {b.tournamentName}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Tournaments */}
+      {myTournaments.length > 0 && (
+        <div className="pastGamesCard">
+          <div className="pastGamesTitle">Tournaments</div>
+          {myTournaments.map((t) => {
+            const isWinner = t.winnerId === linkedPlayer?.userId;
+            return (
+              <div key={t.tournamentId} className="gameCard">
+                <div className="gameCardLeft">
+                  <span className="gameCardPlayer">
+                    {isWinner && (
+                      <EmojiEventsIcon
+                        fontSize="inherit"
+                        sx={{
+                          color: "#d4af37",
+                          mr: 0.5,
+                          verticalAlign: "middle",
+                        }}
+                      />
+                    )}
+                    {t.name}
+                  </span>
+                  <span className="gameCardSub">
+                    {t.roundCount} / {t.targetRounds} rounds
+                    {t.winnerName ? ` · Won by ${t.winnerName}` : ""}
+                  </span>
+                  {t.completedAt && (
+                    <span className="gameCardDate">
+                      {formatDate(t.completedAt)}
+                    </span>
+                  )}
+                </div>
+                <Button
+                  component={Link}
+                  to={`/Tournament/Standings/${t.tournamentId}`}
+                  size="small"
+                  variant="text"
+                  sx={{ fontSize: 11, minWidth: 0, p: "2px 6px" }}
+                >
+                  Standings
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Past games */}
       <div className="pastGamesCard">
@@ -286,8 +438,15 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
               placeholder="Filter by course..."
               isClearable
               options={golfCourseOptions}
-              value={golfCourseFilter ? { value: golfCourseFilter, label: golfCourseFilter } : null}
-              onChange={(opt) => { setGolfCourseFilter(opt?.value ?? null); setGolfVisible(5); }}
+              value={
+                golfCourseFilter
+                  ? { value: golfCourseFilter, label: golfCourseFilter }
+                  : null
+              }
+              onChange={(opt) => {
+                setGolfCourseFilter(opt?.value ?? null);
+                setGolfVisible(5);
+              }}
               styles={courseSelectStyles as any}
             />
             <div className="dateRangeRow">
@@ -295,20 +454,31 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
                 type="date"
                 className="dateInput"
                 value={golfDateFrom}
-                onChange={(e) => { setGolfDateFrom(e.target.value); setGolfVisible(5); }}
+                onChange={(e) => {
+                  setGolfDateFrom(e.target.value);
+                  setGolfVisible(5);
+                }}
               />
               <span className="dateRangeSep">—</span>
               <input
                 type="date"
                 className="dateInput"
                 value={golfDateTo}
-                onChange={(e) => { setGolfDateTo(e.target.value); setGolfVisible(5); }}
+                onChange={(e) => {
+                  setGolfDateTo(e.target.value);
+                  setGolfVisible(5);
+                }}
               />
             </div>
             {(golfCourseFilter || golfDateFrom || golfDateTo) && (
               <button
                 className="clearFiltersBtn"
-                onClick={() => { setGolfCourseFilter(null); setGolfDateFrom(""); setGolfDateTo(""); setGolfVisible(5); }}
+                onClick={() => {
+                  setGolfCourseFilter(null);
+                  setGolfDateFrom("");
+                  setGolfDateTo("");
+                  setGolfVisible(5);
+                }}
               >
                 Clear filters
               </button>
@@ -317,7 +487,9 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
         )}
         {filteredGolfRounds.length === 0 ? (
           <div className="noGames">
-            {myGolfRounds.length === 0 ? "No rounds recorded yet." : "No rounds match filters."}
+            {myGolfRounds.length === 0
+              ? "No rounds recorded yet."
+              : "No rounds match filters."}
           </div>
         ) : (
           <>
@@ -336,7 +508,23 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
                     <span className="gameCardSub">
                       {r.currentCourse.courseName}
                     </span>
-                    <span className="gameCardDate">{formatDate(r.date)}</span>
+                    <span className="gameCardDate">
+                      {r.tournamentId &&
+                        (() => {
+                          const t = tournamentMap[r.tournamentId];
+                          const sessions =
+                            tournamentSessionMap[r.tournamentId] ?? [];
+                          const roundNum = sessions.indexOf(r.date) + 1;
+                          const target = t?.targetRounds ?? "?";
+                          const tName = t?.name ?? "Tournament";
+                          return (
+                            <span className="gameCardTournamentTag">
+                              {tName} {roundNum}/{target}{" "}
+                            </span>
+                          );
+                        })()}
+                      {formatDate(r.date)}
+                    </span>
                   </div>
                   <span className={`gameCardRight ${cls}`}>{text}</span>
                 </div>
@@ -486,51 +674,66 @@ const Dashboard = ({ database, playerOptions, currentUser }: Props) => {
     <div className="dashboardPage">
       <div className="dashboardHeading">Dashboard</div>
 
-      {currentUser?.email === "ndassa83@gmail.com" && <AdminPanel database={database} />}
+      {currentUser?.email === "ndassa83@gmail.com" && (
+        <AdminPanel database={database} />
+      )}
 
       {!currentUser || !linkedPlayer ? (
         <div className="noGames">
-          {!currentUser
-            ? "Sign in to see your stats."
-            : "No player linked to your Google account. Link one from the profile menu."}
+          {!currentUser ? (
+            <>
+              <div>Sign in to see your stats.</div>
+              <Button variant="contained" onClick={onSignIn} sx={{ mt: 1 }}>
+                Sign in with Google
+              </Button>
+            </>
+          ) : (
+            "No player linked to your Google account. Link one from the profile menu."
+          )}
         </div>
       ) : (
         <>
-          {/* Desktop: two columns */}
-          <div className="dashboardCols">
-            {golfCol}
-            {dartCol}
-          </div>
-
-          {/* Mobile: tabs */}
-          <div className="mobileTabs">
-            <Tabs
-              value={activeTab}
-              onChange={(_, v) => setActiveTab(v)}
-              textColor="inherit"
-              TabIndicatorProps={{
-                style: { backgroundColor: "var(--green-primary)" },
-              }}
-              sx={{
-                borderBottom: "2px solid var(--green-primary)",
-                marginBottom: "16px",
-              }}
-            >
-              <Tab
-                value="golf"
-                label="Golf"
-                sx={{ fontFamily: "'Fredoka One', cursive", fontSize: "16px" }}
-              />
-              <Tab
-                value="darts"
-                label="Darts"
-                sx={{ fontFamily: "'Fredoka One', cursive", fontSize: "16px" }}
-              />
-            </Tabs>
-            <div className="dashboardColMobile">
-              {activeTab === "golf" ? golfCol : dartCol}
+          {isMobile ? (
+            <div className="mobileTabs">
+              <Tabs
+                value={activeTab}
+                onChange={(_, v) => setActiveTab(v)}
+                textColor="inherit"
+                TabIndicatorProps={{
+                  style: { backgroundColor: "var(--green-primary)" },
+                }}
+                sx={{
+                  borderBottom: "2px solid var(--green-primary)",
+                  marginBottom: "16px",
+                }}
+              >
+                <Tab
+                  value="golf"
+                  label="Golf"
+                  sx={{
+                    fontFamily: "'Fredoka One', cursive",
+                    fontSize: "16px",
+                  }}
+                />
+                <Tab
+                  value="darts"
+                  label="Darts"
+                  sx={{
+                    fontFamily: "'Fredoka One', cursive",
+                    fontSize: "16px",
+                  }}
+                />
+              </Tabs>
+              <div className="dashboardColMobile">
+                {activeTab === "golf" ? golfCol : dartCol}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="dashboardCols">
+              {golfCol}
+              {dartCol}
+            </div>
+          )}
         </>
       )}
       <GolfRoundModal

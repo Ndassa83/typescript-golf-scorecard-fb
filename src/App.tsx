@@ -37,6 +37,7 @@ import {
   PlayerOptionType,
   CourseOptionType,
   FetchedPlayer,
+  Tournament,
 } from "./types";
 import GolfHome from "./Pages/Home/GolfHome";
 import ScoreCard from "./Pages/ScoreCard/ScoreCard";
@@ -49,6 +50,8 @@ import Home from "./Pages/Home/Home";
 import DartHome from "./Pages/Home/DartHome";
 import DartScoreCard from "./Pages/ScoreCard/DartScoreCard";
 import DartStatPage from "./Pages/StatPage/DartStatPage";
+import TournamentHome from "./Pages/Tournament/TournamentHome";
+import TournamentStandings from "./Pages/Tournament/TournamentStandings";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -64,6 +67,7 @@ initializeApp(firebaseConfig);
 
 const database = getFirestore();
 const collectionRef = collection(database, "playerData");
+const tournamentCollection = collection(database, "tournaments");
 
 const firebaseApp = getApp();
 const auth = getAuth(firebaseApp);
@@ -125,6 +129,13 @@ const App = () => {
   const [playerRounds, setPlayerRounds] = useState<GolfRound[]>(
     () => loadFromStorage<GolfRound[]>(STORAGE_KEYS.GOLF_PLAYER_ROUNDS) ?? [],
   );
+
+  const [activeTournament, setActiveTournament] = useState<Tournament | null>(
+    () => loadFromStorage<Tournament>(STORAGE_KEYS.TOURNAMENT_ACTIVE),
+  );
+  const [dartGameActive, setDartGameActive] = useState<boolean>(
+    () => loadFromStorage<boolean>(STORAGE_KEYS.DARTS_GAME_ACTIVE) ?? false,
+  );
   // Persist state to localStorage
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.CURRENT_PLAYERS, currentPlayers);
@@ -135,6 +146,9 @@ const App = () => {
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.GOLF_PLAYER_ROUNDS, playerRounds);
   }, [playerRounds]);
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.TOURNAMENT_ACTIVE, activeTournament);
+  }, [activeTournament]);
 
   // Firebase Auth state
   useEffect(() => {
@@ -190,7 +204,9 @@ const App = () => {
           }))
         );
       },
-    );
+    ).catch((err) => {
+      console.error("Failed to fetch players:", err);
+    });
   }, [database]);
 
   //fetch courses
@@ -204,7 +220,9 @@ const App = () => {
           }))
         );
       },
-    );
+    ).catch((err) => {
+      console.error("Failed to fetch courses:", err);
+    });
   }, [database]);
 
   //create player
@@ -292,15 +310,31 @@ const App = () => {
               </Link>
             </Button>
             <Button onClick={closeMenu}>
+              <Link className="navOptions" to="/Tournament">
+                Tournament
+              </Link>
+            </Button>
+            <Button onClick={closeMenu}>
               <Link className="navOptions" to="/Dashboard">
                 My Stats
               </Link>
             </Button>
-            <Button disabled={!courseSelected} onClick={closeMenu}>
-              <Link className="navOptions" to="/ScoreCard">
-                ScoreCard
-              </Link>
-            </Button>
+            {courseSelected && playerRounds.length > 0 && (
+              <Button onClick={closeMenu}>
+                <Link className="navOptions navOptionsActive" to="/ScoreCard">
+                  <span className="navActiveDot" />
+                  Golf Round
+                </Link>
+              </Button>
+            )}
+            {dartGameActive && (
+              <Button onClick={closeMenu}>
+                <Link className="navOptions navOptionsActive" to="/DartScoreCard">
+                  <span className="navActiveDot" />
+                  Dart Match
+                </Link>
+              </Button>
+            )}
           </div>
 
           <div className="navAuth">
@@ -372,23 +406,7 @@ const App = () => {
         <Routes>
           <Route
             path="/"
-            element={
-              <Home
-                courseSelected={courseSelected}
-                setCourseSelected={setCourseSelected}
-                playerOptions={playerOptions}
-                courseOptions={courseOptions}
-                setCreatedPlayerName={setCreatedPlayerName}
-                createdPlayerName={createdPlayerName}
-                setCreatedPlayerId={setCreatedPlayerId}
-                createdCourse={createdCourse}
-                setCreatedCourse={setCreatedCourse}
-                playerImage={playerImage}
-                setPlayerImage={setPlayerImage}
-                currentPlayers={currentPlayers}
-                setCurrentPlayers={setCurrentPlayers}
-              />
-            }
+            element={<Home />}
           />
           <Route
             path="/Golf"
@@ -397,6 +415,7 @@ const App = () => {
                 courseSelected={courseSelected}
                 setCourseSelected={setCourseSelected}
                 courseOptions={courseOptions}
+                playerOptions={playerOptions}
                 createdCourse={createdCourse}
                 setCreatedCourse={setCreatedCourse}
                 currentPlayers={currentPlayers}
@@ -404,6 +423,12 @@ const App = () => {
                 playerRounds={playerRounds}
                 setPlayerRounds={setPlayerRounds}
                 onUpdateCourse={handleUpdateCourse}
+                activeTournament={activeTournament}
+                setCreatedPlayerId={setCreatedPlayerId}
+                setCreatedPlayerName={setCreatedPlayerName}
+                createdPlayerName={createdPlayerName}
+                playerImage={playerImage}
+                setPlayerImage={setPlayerImage}
               />
             }
           />
@@ -413,6 +438,23 @@ const App = () => {
               <DartHome
                 currentPlayers={currentPlayers}
                 setCurrentPlayers={setCurrentPlayers}
+                dartRoundCollection={dartRoundCollection}
+                currentUserEmail={currentUser?.email ?? null}
+                playerOptions={playerOptions}
+                setCreatedPlayerId={setCreatedPlayerId}
+                setCreatedPlayerName={setCreatedPlayerName}
+                createdPlayerName={createdPlayerName}
+                playerImage={playerImage}
+                setPlayerImage={setPlayerImage}
+                setDartGameActive={setDartGameActive}
+              />
+            }
+          />
+
+          <Route
+            path="/DartScoreCard"
+            element={
+              <DartScoreCard
                 dartRoundCollection={dartRoundCollection}
                 currentUserEmail={currentUser?.email ?? null}
               />
@@ -430,6 +472,8 @@ const App = () => {
                 playerRounds={playerRounds}
                 setPlayerRounds={setPlayerRounds}
                 currentUserEmail={currentUser?.email ?? null}
+                activeTournament={activeTournament}
+                setActiveTournament={setActiveTournament}
               />
             }
           />
@@ -453,6 +497,30 @@ const App = () => {
                 database={database}
                 playerOptions={playerOptions}
                 currentUser={currentUser}
+                onSignIn={handleSignIn}
+              />
+            }
+          />
+          <Route
+            path="/Tournament"
+            element={
+              <TournamentHome
+                activeTournament={activeTournament}
+                setActiveTournament={setActiveTournament}
+                tournamentCollection={tournamentCollection}
+                playerOptions={playerOptions}
+                courseOptions={courseOptions}
+                currentUser={currentUser}
+                database={database}
+              />
+            }
+          />
+          <Route
+            path="/Tournament/Standings/:tournamentId"
+            element={
+              <TournamentStandings
+                database={database}
+                playerOptions={playerOptions}
               />
             }
           />

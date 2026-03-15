@@ -14,6 +14,13 @@
   overflow-x: auto;
 }
 
+.splitTables {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-x: visible;
+}
+
 .titles {
   justify-content: left;
   text-align: left;
@@ -84,21 +91,21 @@
 
 @media (max-width: 768px) {
   .cell {
-    width: 28px;
-    height: 28px;
+    width: 27px;
+    height: 27px;
     font-size: 11px;
   }
 
   .cellTitles {
-    width: 64px;
+    width: 62px;
     font-size: 11px;
   }
 
   .titles {
-    width: 64px;
+    width: 62px;
   }
 
   .totals {
-    width: 52px;
+    width: 50px;
   }
 }

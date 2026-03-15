@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
@@ -14,6 +14,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import { CourseCreator } from "./CourseCreator";
 import { CourseEditor } from "./CourseEditor";
 import CourseSearch from "./CourseSearch";
+import { PlayerSelector } from "./PlayerSelector";
+import { PlayerCreator } from "./PlayerCreator";
 import { clearStorage, GOLF_KEYS } from "../../utils/localStorage";
 import dayjs from "dayjs";
 
@@ -21,7 +23,9 @@ import {
   GolfRound,
   Course,
   CourseOptionType,
+  PlayerOptionType,
   FetchedPlayer,
+  Tournament,
 } from "../../types";
 import "./Home.css";
 
@@ -29,6 +33,7 @@ type GolfHomeProps = {
   courseSelected: Course | null;
   setCourseSelected: React.Dispatch<React.SetStateAction<Course | null>>;
   courseOptions: CourseOptionType[];
+  playerOptions: PlayerOptionType[];
   createdCourse: Course | null;
   setCreatedCourse: React.Dispatch<React.SetStateAction<Course | null>>;
   currentPlayers: FetchedPlayer[];
@@ -36,18 +41,32 @@ type GolfHomeProps = {
   playerRounds: GolfRound[];
   setPlayerRounds: React.Dispatch<React.SetStateAction<GolfRound[]>>;
   onUpdateCourse: (course: Course) => void;
+  activeTournament: Tournament | null;
+  setCreatedPlayerId: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setCreatedPlayerName: React.Dispatch<React.SetStateAction<string>>;
+  createdPlayerName: string | null;
+  playerImage: string | null;
+  setPlayerImage: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 const GolfHome = ({
   courseSelected,
   setCourseSelected,
   courseOptions,
+  playerOptions,
   createdCourse,
   setCreatedCourse,
   currentPlayers,
+  setCurrentPlayers,
   playerRounds,
   setPlayerRounds,
   onUpdateCourse,
+  activeTournament,
+  setCreatedPlayerId,
+  setCreatedPlayerName,
+  createdPlayerName,
+  playerImage,
+  setPlayerImage,
 }: GolfHomeProps) => {
   const navigate = useNavigate();
   const [pendingCourse, setPendingCourse] = useState<Course | null>(null);
@@ -55,6 +74,7 @@ const GolfHome = ({
     () => playerRounds.length > 0
   );
   const [editingCourse, setEditingCourse] = useState(false);
+  const [playOutsideTournament, setPlayOutsideTournament] = useState(false);
 
   const handleCourseSelect = (course: Course | null) => {
     if (playerRounds.length > 0) {
@@ -82,41 +102,141 @@ const GolfHome = ({
       scores: [],
       date: roundDate,
       currentCourse: courseSelected,
+      ...(activeTournament && !playOutsideTournament
+        ? { tournamentId: activeTournament.tournamentId }
+        : {}),
     }));
     setPlayerRounds(roundarray);
     navigate("/ScoreCard");
   };
 
+  const handleToggleOutsideTournament = () => {
+    const next = !playOutsideTournament;
+    setPlayOutsideTournament(next);
+    if (!next && activeTournament && playerOptions.length > 0) {
+      const tournamentPlayers = activeTournament.participantIds
+        .map((id) => playerOptions.find((p) => p.value.userId === id)?.value)
+        .filter((p): p is FetchedPlayer => !!p);
+      if (tournamentPlayers.length > 0) setCurrentPlayers(tournamentPlayers);
+      if (activeTournament.lockedCourseId) {
+        const locked = courseOptions.find(
+          (o) => o.value.courseId === activeTournament.lockedCourseId
+        );
+        if (locked) setCourseSelected(locked.value);
+      }
+    }
+  };
+
+  const courseLocked = !!(activeTournament?.lockedCourseId) && !playOutsideTournament;
+  const tournamentPlayersLocked = !!(activeTournament) && !playOutsideTournament;
+
+  // When entering GolfHome for a tournament round, force currentPlayers to match tournament participants
+  useEffect(() => {
+    if (!activeTournament || playerOptions.length === 0 || playOutsideTournament) return;
+    const tournamentPlayers = activeTournament.participantIds
+      .map((id) => playerOptions.find((p) => p.value.userId === id)?.value)
+      .filter((p): p is FetchedPlayer => !!p);
+    if (tournamentPlayers.length > 0) {
+      setCurrentPlayers(tournamentPlayers);
+    }
+  }, [activeTournament?.tournamentId, playerOptions.length, playOutsideTournament]);
+
+  // Auto-select locked course when entering GolfHome for a tournament round
+  useEffect(() => {
+    if (courseLocked && activeTournament?.lockedCourseId && courseOptions.length > 0) {
+      const locked = courseOptions.find(
+        (o) => o.value.courseId === activeTournament.lockedCourseId
+      );
+      if (locked) setCourseSelected(locked.value);
+    }
+  }, [courseLocked, activeTournament?.lockedCourseId, courseOptions.length]);
+
   const canStart = courseSelected && currentPlayers.length > 0;
+
+  // Step numbers shift when player selection is visible
+  const showPlayerSelector = !tournamentPlayersLocked;
+  const courseStepNum = showPlayerSelector ? 2 : 1;
+  const readyStepNum = showPlayerSelector ? 3 : 2;
 
   return (
     <div className="page-container">
       <div className="two-col-layout golfHomeLayout">
-        {/* Left column: course selection */}
+        {/* Left column */}
         <div className="golfHomeLeftCol">
+          {activeTournament && (
+            <div className={`tournamentBanner${playOutsideTournament ? " tournamentBannerMuted" : ""}`}>
+              <span className="tournamentBannerText">
+                {playOutsideTournament
+                  ? `Casual round (${activeTournament.name} paused)`
+                  : `🏆 ${activeTournament.name} — Round ${activeTournament.roundCount + 1} of ${activeTournament.targetRounds}`}
+              </span>
+              <button
+                className="tournamentBannerToggle"
+                onClick={handleToggleOutsideTournament}
+              >
+                {playOutsideTournament ? "Back to tournament" : "Play casual round"}
+              </button>
+            </div>
+          )}
+
+          {/* Player selection — hidden during locked tournament rounds */}
+          {showPlayerSelector && (
+            <>
+              <div className="homeStepHeader">
+                <span className="homeStepBadge">1</span>
+                <h2 className="homeHeading">Add Players</h2>
+              </div>
+              <PlayerSelector
+                playerOptions={playerOptions}
+                currentPlayers={currentPlayers}
+                setCurrentPlayers={setCurrentPlayers}
+              />
+              <div className="homeCreatorRow">
+                <span className="homeSubHeading">New player?</span>
+                <PlayerCreator
+                  setCreatedPlayerId={setCreatedPlayerId}
+                  setCreatedPlayerName={setCreatedPlayerName}
+                  createdPlayerName={createdPlayerName}
+                  playerOptions={playerOptions}
+                  playerImage={playerImage}
+                  setPlayerImage={setPlayerImage}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Course selection */}
           <div className="homeStepHeader">
-            <span className="homeStepBadge">1</span>
+            <span className="homeStepBadge">{courseStepNum}</span>
             <h2 className="homeHeading">Select a Course</h2>
           </div>
-          <CourseSearch
-            onPlayCourse={handleCourseSelect}
-            courseOptions={courseOptions}
-          />
-
-          <div className="homeCreatorRow">
-            <span className="homeSubHeading">New course?</span>
-            <CourseCreator
-              createdCourse={createdCourse}
-              setCreatedCourse={setCreatedCourse}
+          {courseLocked ? (
+            <div className="courseLockedDisplay">
+              <span className="courseLockedLabel">Course (locked)</span>
+              <span className="courseLockedName">{activeTournament?.lockedCourseName}</span>
+            </div>
+          ) : (
+            <CourseSearch
+              onPlayCourse={handleCourseSelect}
               courseOptions={courseOptions}
             />
-          </div>
+          )}
+          {!courseLocked && (
+            <div className="homeCreatorRow">
+              <span className="homeSubHeading">New course?</span>
+              <CourseCreator
+                createdCourse={createdCourse}
+                setCreatedCourse={setCreatedCourse}
+                courseOptions={courseOptions}
+              />
+            </div>
+          )}
         </div>
 
         {/* Right column: summary + start */}
         <div className="golfHomeRightCol">
           <div className="homeStepHeader">
-            <span className="homeStepBadge">2</span>
+            <span className="homeStepBadge">{readyStepNum}</span>
             <h2 className="homeHeading">Ready to Play</h2>
           </div>
 
@@ -140,7 +260,7 @@ const GolfHome = ({
                 <div className="readyCourseInfo">
                   <div className="readyCourseNameRow">
                     <span className="readyCourseName">{courseSelected.courseName}</span>
-                    {!courseSelected.courseId.startsWith("api-") && (
+                    {!courseSelected.courseId.startsWith("api-") && !courseLocked && (
                       <Tooltip title="Edit course">
                         <IconButton
                           size="small"

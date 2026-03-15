@@ -133,72 +133,68 @@ const GolfLeaderboardTable = ({ title, entries }: { title: string; entries: Entr
   );
 };
 
+type CategoryDef = { label: string; description: string; entries: (stats: PlayerGolfStats[], allStats: PlayerGolfStats[]) => Entry[] };
+
 type Props = { allScoreData: GolfRound[] };
 
 const GolfLeaderboards = ({ allScoreData }: Props) => {
   const allStats = useMemo(() => buildGolfStats(allScoreData), [allScoreData]);
-
-  if (allStats.length === 0) {
-    return <div className="statEmptyMsg">No rounds recorded yet.</div>;
-  }
+  const [activeIdx, setActiveIdx] = useState(0);
 
   const desc = (
+    stats: PlayerGolfStats[],
     key: keyof PlayerGolfStats,
     display: (s: PlayerGolfStats) => string,
     filter?: (s: PlayerGolfStats) => boolean
   ): Entry[] =>
-    (filter ? allStats.filter(filter) : allStats)
+    (filter ? stats.filter(filter) : stats)
       .filter((s) => (s[key] as number) > 0)
       .sort((a, b) => (b[key] as number) - (a[key] as number))
       .map((s) => ({ userId: s.userId, name: s.name, displayValue: display(s) }));
 
   const asc = (
+    stats: PlayerGolfStats[],
     key: keyof PlayerGolfStats,
     display: (s: PlayerGolfStats) => string,
-    filter?: (s: PlayerGolfStats) => boolean
   ): Entry[] =>
-    (filter ? allStats.filter(filter) : allStats)
+    stats
       .sort((a, b) => (a[key] as number) - (b[key] as number))
       .map((s) => ({ userId: s.userId, name: s.name, displayValue: display(s) }));
 
+  const categories: CategoryDef[] = [
+    { label: "Best Round", description: "Lowest single-round score to par across all rounds played.", entries: (s) => asc(s, "bestScoreToPar", (p) => fmtStpInt(p.bestScoreToPar)) },
+    { label: "Avg Score", description: "Average score to par across every round played.", entries: (s) => asc(s, "avgScoreToPar", (p) => fmtStp(p.avgScoreToPar)) },
+    { label: "Rounds", description: "Total number of completed rounds on record.", entries: (s) => desc(s, "totalRounds", (p) => `${p.totalRounds} rounds`) },
+    { label: "Birdies", description: "Total birdies (1 under par on a hole) across all rounds.", entries: (s) => desc(s, "totalBirdies", (p) => `${p.totalBirdies} birdies`) },
+    { label: "Eagles", description: "Total eagles (2 under par on a hole) across all rounds.", entries: (s) => desc(s, "totalEagles", (p) => `${p.totalEagles} eagles`) },
+    { label: "Birdie Rate", description: "Birdie percentage per hole played (min. 9 holes required).", entries: (_s, all) => desc(all, "birdieRate", (p) => pct(p.birdieRate), (p) => p.totalHolesPlayed >= 9) },
+    { label: "Holes in One", description: "Total aces (score of 1) recorded across all rounds.", entries: (s) => desc(s, "totalHolesInOne", (p) => `${p.totalHolesInOne}`) },
+    { label: "Bogey-Free", description: "Rounds completed without a single bogey or worse.", entries: (s) => desc(s, "bogeyFreeRounds", (p) => `${p.bogeyFreeRounds} rounds`) },
+    { label: "Under Par", description: "Number of rounds finished with a total score below par.", entries: (s) => desc(s, "roundsUnderPar", (p) => `${p.roundsUnderPar} rounds`) },
+  ];
+
+  if (allStats.length === 0) {
+    return <div className="statEmptyMsg">No rounds recorded yet.</div>;
+  }
+
+  const active = categories[activeIdx];
+  const entries = active.entries([...allStats], allStats);
+
   return (
-    <div className="leaderboardContainer">
-      <GolfLeaderboardTable
-        title="Best Single Round"
-        entries={asc("bestScoreToPar", (s) => fmtStpInt(s.bestScoreToPar))}
-      />
-      <GolfLeaderboardTable
-        title="Best Avg Score to Par"
-        entries={asc("avgScoreToPar", (s) => fmtStp(s.avgScoreToPar))}
-      />
-      <GolfLeaderboardTable
-        title="Most Rounds Played"
-        entries={desc("totalRounds", (s) => `${s.totalRounds} rounds`)}
-      />
-      <GolfLeaderboardTable
-        title="Most Birdies"
-        entries={desc("totalBirdies", (s) => `${s.totalBirdies} birdies`)}
-      />
-      <GolfLeaderboardTable
-        title="Most Eagles"
-        entries={desc("totalEagles", (s) => `${s.totalEagles} eagles`)}
-      />
-      <GolfLeaderboardTable
-        title="Best Birdie Rate"
-        entries={desc("birdieRate", (s) => pct(s.birdieRate), (s) => s.totalHolesPlayed >= 9)}
-      />
-      <GolfLeaderboardTable
-        title="Most Holes in One"
-        entries={desc("totalHolesInOne", (s) => `${s.totalHolesInOne}`)}
-      />
-      <GolfLeaderboardTable
-        title="Most Bogey-Free Rounds"
-        entries={desc("bogeyFreeRounds", (s) => `${s.bogeyFreeRounds} rounds`)}
-      />
-      <GolfLeaderboardTable
-        title="Most Rounds Under Par"
-        entries={desc("roundsUnderPar", (s) => `${s.roundsUnderPar} rounds`)}
-      />
+    <div className="leaderboardDashboard">
+      <div className="leaderboardChips">
+        {categories.map((cat, i) => (
+          <button
+            key={cat.label}
+            className={`leaderboardChip${i === activeIdx ? " active" : ""}`}
+            onClick={() => setActiveIdx(i)}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+      <p className="leaderboardDescription">{active.description}</p>
+      <GolfLeaderboardTable title={active.label} entries={entries} />
     </div>
   );
 };

@@ -7,7 +7,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  overflow: scroll;
+  overflow: auto;
 }
 
 .modalContent {
@@ -17,7 +17,7 @@
   border: 3px solid var(--green-primary);
   box-shadow: 4px 4px 0 var(--text-dark);
   width: fit-content;
-  overflow: scroll;
+  overflow: auto;
 }
 
 @media (max-width: 768px) {

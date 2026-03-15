@@ -36,6 +36,7 @@ export const STORAGE_KEYS = {
   DARTS_CUR_GAME_TYPE: "darts_curGameType",
   DARTS_CURRENT_TOSS: "darts_currentToss",
   DARTS_GAME_LENGTH: "darts_gameLength",
+  TOURNAMENT_ACTIVE: "tournament_active",
 } as const;
 
 export const GOLF_KEYS = [
@@ -51,3 +52,5 @@ export const DART_KEYS = [
   STORAGE_KEYS.DARTS_CURRENT_TOSS,
   STORAGE_KEYS.DARTS_GAME_LENGTH,
 ] as const;
+
+export const TOURNAMENT_KEYS = [STORAGE_KEYS.TOURNAMENT_ACTIVE] as const;

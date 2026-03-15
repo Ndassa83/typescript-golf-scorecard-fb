@@ -32,7 +32,7 @@ a {
   background-color: var(--blue-sky);
   border-bottom: 3px solid var(--text-dark);
   width: 100%;
-  font-size: 14px;
+  font-size: 12px;
   font-family: 'Fredoka One', cursive;
 }
 
@@ -45,6 +45,7 @@ a {
   color: white;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .homeImg {
@@ -61,18 +62,41 @@ a {
 .navLinks {
   display: flex;
   justify-content: center;
-  gap: 4px;
+  gap: 0;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
 }
 
+.navOptionsActive {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.navActiveDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #ff3b3b;
+  flex-shrink: 0;
+  animation: navDotPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes navDotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); }
+  50% { box-shadow: 0 0 0 5px rgba(255, 59, 59, 0); }
+}
+
 .navContainer .MuiButton-root {
   border: none !important;
   background-color: transparent !important;
-  min-height: 40px !important;
+  min-height: 44px !important;
   border-radius: 8px !important;
   color: white !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
 }
 
 .navContainer .MuiButton-root:hover {
@@ -202,6 +226,6 @@ a {
   }
 
   .navOptions {
-    font-size: 14px;
+    font-size: 13px;
   }
 }

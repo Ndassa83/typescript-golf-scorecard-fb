@@ -164,6 +164,7 @@
   color: var(--green-primary);
   text-align: right;
   flex-shrink: 0;
+  min-width: 90px;
 }
 
 @media (max-width: 768px) {

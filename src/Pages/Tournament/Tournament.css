@@ -1,0 +1,372 @@
+.tournamentPage {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 24px 48px;
+}
+
+.tournamentHeading {
+  font-family: 'Fredoka One', cursive;
+  font-size: 28px;
+  color: var(--green-primary);
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.tournamentSubHeading {
+  font-family: 'Fredoka One', cursive;
+  font-size: 20px;
+  color: var(--green-primary);
+  margin-bottom: 12px;
+}
+
+/* Panel card */
+.tournamentPanel {
+  background-color: var(--bg-cream);
+  border: 3px solid var(--green-primary);
+  border-radius: 12px;
+  box-shadow: 2px 2px 0 var(--text-dark);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+/* Create form */
+.tournamentFormRow {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.tournamentLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.tournamentInput {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 15px;
+  border: 2px solid var(--green-primary);
+  border-radius: 8px;
+  background: white;
+  box-sizing: border-box;
+}
+
+.tournamentInput:focus {
+  outline: none;
+  border-color: var(--green-dark, #2d6a2d);
+}
+
+.tournamentNumberInput {
+  width: 80px;
+  padding: 8px 10px;
+  font-size: 15px;
+  border: 2px solid var(--green-primary);
+  border-radius: 8px;
+  background: white;
+}
+
+/* Active tournament manage panel */
+.tournamentInfoGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 16px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.tournamentInfoLabel {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.tournamentInfoValue {
+  color: var(--text-dark);
+}
+
+.tournamentStatusBadge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tournamentStatusBadge.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.tournamentStatusBadge.completed {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.tournamentActionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* Divider between create and join */
+.tournamentDivider {
+  border: none;
+  border-top: 2px solid #d8e8d8;
+  margin: 20px 0;
+}
+
+/* Standings */
+.tournamentStandingsPage {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px 24px 48px;
+}
+
+.tournamentWinnerBanner {
+  background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+  border: 3px solid #d4af37;
+  border-radius: 12px;
+  box-shadow: 2px 2px 0 #b8960c;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tournamentWinnerTrophy {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.tournamentWinnerTitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: 18px;
+  color: #7a5c00;
+}
+
+.tournamentWinnerName {
+  font-family: 'Fredoka One', cursive;
+  font-size: 26px;
+  color: #b8960c;
+}
+
+.tournamentStandingsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-cream);
+  border: 3px solid var(--green-primary);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.tournamentStandingsTable th {
+  background: var(--green-primary);
+  color: white;
+  padding: 10px 12px;
+  text-align: left;
+  font-family: 'Fredoka One', cursive;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.tournamentStandingsTable td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #d8e8d8;
+  color: var(--text-dark);
+}
+
+.tournamentStandingsTable tr:last-child td {
+  border-bottom: none;
+}
+
+.tournamentStandingsTable tr.leader td {
+  background-color: #fff8e1;
+}
+
+.tournamentIncomplete {
+  font-size: 11px;
+  color: #999;
+  margin-left: 6px;
+}
+
+.tournamentRefreshRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.tournamentSummarySection {
+  margin-bottom: 32px;
+}
+
+.tournamentRoundsSection {
+  margin-bottom: 32px;
+}
+
+.tournamentRoundNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.tournamentRoundNavBtn {
+  background: var(--green-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tournamentRoundNavBtn:disabled {
+  background: #ccc;
+  cursor: default;
+}
+
+.tournamentRoundNavLabel {
+  font-family: 'Fredoka One', cursive;
+  font-size: 16px;
+  color: var(--text-dark);
+}
+
+.tournamentRoundBlock {
+  margin-bottom: 28px;
+}
+
+.tournamentRoundLabel {
+  font-family: 'Fredoka One', cursive;
+  font-size: 16px;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.tournamentRoundCourse {
+  font-size: 14px;
+  color: #888;
+  font-family: inherit;
+}
+
+.tournamentNoRounds {
+  color: #999;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.tournamentStandingsFooter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Tournament banner in GolfHome */
+.tournamentBanner {
+  background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tournamentBannerMuted {
+  background: linear-gradient(135deg, #f5f5f5 0%, #fafafa 100%);
+  border-color: #bbb;
+}
+
+.tournamentBannerMuted .tournamentBannerText {
+  color: #888;
+}
+
+.tournamentBannerText {
+  font-family: 'Fredoka One', cursive;
+  font-size: 15px;
+  color: #7a5c00;
+}
+
+.tournamentBannerToggle {
+  background: none;
+  border: 1px solid #b8972a;
+  border-radius: 20px;
+  padding: 2px 12px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 13px;
+  color: #7a5c00;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tournamentBannerToggle:hover {
+  background-color: rgba(180, 140, 0, 0.1);
+}
+
+.tournamentBannerMuted .tournamentBannerToggle {
+  border-color: #999;
+  color: #555;
+}
+
+.tournamentBannerMuted .tournamentBannerToggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Locked course display */
+.courseLockedDisplay {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: #f0f7f0;
+  border: 2px solid var(--green-primary);
+  border-radius: 8px;
+}
+
+.courseLockedLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.courseLockedName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+@media (max-width: 600px) {
+  .tournamentPage,
+  .tournamentStandingsPage {
+    padding: 16px 12px 40px;
+  }
+
+  .tournamentStandingsTable {
+    font-size: 12px;
+  }
+
+  .tournamentStandingsTable th,
+  .tournamentStandingsTable td {
+    padding: 8px 8px;
+  }
+}

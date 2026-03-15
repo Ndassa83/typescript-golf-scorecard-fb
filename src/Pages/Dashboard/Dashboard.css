@@ -71,6 +71,39 @@
   color: var(--green-primary);
 }
 
+/* Trophy badges */
+.dashboardTrophySection {
+  margin-top: 14px;
+  border-top: 1px solid #d8e8d8;
+  padding-top: 10px;
+}
+
+.dashboardTrophyTitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.dashboardTrophyList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dashboardTrophyBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dashboardTrophyName {
+  font-size: 13px;
+  color: var(--text-dark);
+}
+
 /* Throw distribution */
 .dashboardThrowDist {
   margin-top: 12px;
@@ -154,6 +187,12 @@
   font-size: 11px;
   color: #aaa;
 }
+
+.gameCardTournamentTag {
+  color: #b8960c;
+  font-weight: 600;
+}
+
 
 .gameCardRight {
   font-weight: bold;
@@ -355,6 +394,11 @@
 @media (max-width: 768px) {
   .dashboardPage {
     padding: 16px 16px 48px;
+  }
+
+  .roundModalBox {
+    padding: 16px 8px 16px;
+    max-width: 98vw;
   }
 
   .dashboardHeading {

@@ -9,7 +9,7 @@ import {
   doc,
 } from "firebase/firestore";
 import { Modal } from "@mui/material";
-import { GolfRound, DartRound, FetchedPlayer, Course } from "../../types";
+import { GolfRound, DartRound, FetchedPlayer, Course, Tournament } from "../../types";
 import "./AdminPanel.css";
 
 type WithDocId<T> = { id: string; data: T };
@@ -58,6 +58,7 @@ export const AdminPanel = ({ database }: Props) => {
   const [dartRounds, setDartRounds] = useState<WithDocId<DartRound>[] | null>(null);
   const [players, setPlayers] = useState<WithDocId<FetchedPlayer>[] | null>(null);
   const [courses, setCourses] = useState<WithDocId<Course>[] | null>(null);
+  const [tournaments, setTournaments] = useState<WithDocId<Tournament>[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetchErr, setFetchErr] = useState<string | null>(null);
 
@@ -65,6 +66,7 @@ export const AdminPanel = ({ database }: Props) => {
   const [selectedDarts, setSelectedDarts] = useState<Record<string, boolean>>({});
   const [selectedPlayers, setSelectedPlayers] = useState<Record<string, boolean>>({});
   const [selectedCourses, setSelectedCourses] = useState<Record<string, boolean>>({});
+  const [selectedTournaments, setSelectedTournaments] = useState<Record<string, boolean>>({});
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmInput, setConfirmInput] = useState("");
@@ -78,22 +80,26 @@ export const AdminPanel = ({ database }: Props) => {
     setDartRounds(null);
     setPlayers(null);
     setCourses(null);
+    setTournaments(null);
     setSelectedGolf({});
     setSelectedDarts({});
     setSelectedPlayers({});
     setSelectedCourses({});
+    setSelectedTournaments({});
 
     Promise.all([
       getDocs(query(collection(database, "playerData"), orderBy("date", "desc"))),
       getDocs(query(collection(database, "dartRounds"), orderBy("date", "desc"))),
       getDocs(query(collection(database, "userList"), orderBy("userName", "asc"))),
       getDocs(query(collection(database, "courseData"), orderBy("courseName", "asc"))),
+      getDocs(query(collection(database, "tournaments"), orderBy("createdAt", "desc"))),
     ])
-      .then(([golfSnap, dartSnap, playerSnap, courseSnap]) => {
+      .then(([golfSnap, dartSnap, playerSnap, courseSnap, tournSnap]) => {
         setGolfRounds(golfSnap.docs.map((d) => ({ id: d.id, data: d.data() as GolfRound })));
         setDartRounds(dartSnap.docs.map((d) => ({ id: d.id, data: d.data() as DartRound })));
         setPlayers(playerSnap.docs.map((d) => ({ id: d.id, data: d.data() as FetchedPlayer })));
         setCourses(courseSnap.docs.map((d) => ({ id: d.id, data: d.data() as Course })));
+        setTournaments(tournSnap.docs.map((d) => ({ id: d.id, data: d.data() as Tournament })));
       })
       .catch(() => setFetchErr("Failed to load data. Check your connection and try again."))
       .finally(() => setLoading(false));
@@ -103,7 +109,8 @@ export const AdminPanel = ({ database }: Props) => {
     Object.values(selectedGolf).filter(Boolean).length +
     Object.values(selectedDarts).filter(Boolean).length +
     Object.values(selectedPlayers).filter(Boolean).length +
-    Object.values(selectedCourses).filter(Boolean).length;
+    Object.values(selectedCourses).filter(Boolean).length +
+    Object.values(selectedTournaments).filter(Boolean).length;
 
   const handleDeleteConfirm = async () => {
     if (confirmInput !== "DELETE") return;
@@ -124,6 +131,9 @@ export const AdminPanel = ({ database }: Props) => {
       ...Object.entries(selectedCourses)
         .filter(([, v]) => v)
         .map(([id]) => ({ col: "courseData", id })),
+      ...Object.entries(selectedTournaments)
+        .filter(([, v]) => v)
+        .map(([id]) => ({ col: "tournaments", id })),
     ];
 
     const results = await Promise.allSettled(
@@ -194,6 +204,20 @@ export const AdminPanel = ({ database }: Props) => {
         return next;
       });
     }
+    const successTournaments = new Set(
+      Object.entries(selectedTournaments)
+        .filter(([, v]) => v)
+        .map(([id]) => id)
+        .filter((id) => !failedIds.has(id)),
+    );
+    if (successTournaments.size > 0) {
+      setTournaments((prev) => prev?.filter((r) => !successTournaments.has(r.id)) ?? null);
+      setSelectedTournaments((prev) => {
+        const next = { ...prev };
+        successTournaments.forEach((id) => delete next[id]);
+        return next;
+      });
+    }
 
     setDeleteInProgress(false);
     if (failedIds.size > 0) {
@@ -217,7 +241,8 @@ export const AdminPanel = ({ database }: Props) => {
     golfRounds !== null &&
     dartRounds !== null &&
     players !== null &&
-    courses !== null;
+    courses !== null &&
+    tournaments !== null;
 
   const playerUserIdsWithRounds = new Set<number>();
   if (golfRounds) golfRounds.forEach((r) => playerUserIdsWithRounds.add(r.data.userId));
@@ -231,6 +256,7 @@ export const AdminPanel = ({ database }: Props) => {
   const dartsSelectedCount = Object.values(selectedDarts).filter(Boolean).length;
   const playersSelectedCount = Object.values(selectedPlayers).filter(Boolean).length;
   const coursesSelectedCount = Object.values(selectedCourses).filter(Boolean).length;
+  const tournamentsSelectedCount = Object.values(selectedTournaments).filter(Boolean).length;
 
   return (
     <div className="adminPanel">
@@ -477,6 +503,57 @@ export const AdminPanel = ({ database }: Props) => {
                 )}
               </div>
 
+              {/* Tournaments */}
+              <div className="adminSection">
+                <div className="adminSectionHeader">
+                  <span className="adminSectionTitle">Tournaments ({tournaments!.length})</span>
+                  {tournaments!.length > 0 && (
+                    <button
+                      className="adminSelectAllBtn"
+                      onClick={() =>
+                        toggleAll(
+                          tournaments!.map((r) => r.id),
+                          selectedTournaments,
+                          setSelectedTournaments,
+                        )
+                      }
+                    >
+                      {tournaments!.every((r) => selectedTournaments[r.id])
+                        ? "Deselect All"
+                        : "Select All"}
+                    </button>
+                  )}
+                </div>
+                {tournaments!.length === 0 ? (
+                  <div className="adminEmptyState">No tournaments.</div>
+                ) : (
+                  tournaments!.map((r) => (
+                    <div key={r.id} className="adminRecordRow">
+                      <input
+                        type="checkbox"
+                        checked={!!selectedTournaments[r.id]}
+                        onChange={(e) =>
+                          setSelectedTournaments((prev) => ({
+                            ...prev,
+                            [r.id]: e.target.checked,
+                          }))
+                        }
+                      />
+                      <div className="adminRecordMain">
+                        <span className="adminRecordPrimary">{r.data.name}</span>
+                        <span className="adminRecordSecondary">
+                          {r.data.status} · {r.data.roundCount}/{r.data.targetRounds} rounds
+                          {r.data.winnerName ? ` · Winner: ${r.data.winnerName}` : ""}
+                        </span>
+                      </div>
+                      <span className={`adminRecordBadge ${r.data.status}`}>
+                        {r.data.status}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+
               {/* Delete bar */}
               <div className="adminDeleteBar">
                 <span className="adminSelectedCount">
@@ -531,6 +608,13 @@ export const AdminPanel = ({ database }: Props) => {
               <>
                 &bull; {coursesSelectedCount} course
                 {coursesSelectedCount !== 1 ? "s" : ""}
+                <br />
+              </>
+            )}
+            {tournamentsSelectedCount > 0 && (
+              <>
+                &bull; {tournamentsSelectedCount} tournament
+                {tournamentsSelectedCount !== 1 ? "s" : ""}
                 <br />
               </>
             )}

@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { CollectionReference, Firestore } from "firebase/firestore";
 import { ScoreCardTable } from "./ScoreCardTable";
 import { HoleChanger } from "./HoleChanger";
 import { PlayerScores } from "./PlayerScores";
 import { PostRound } from "./PostRound";
-import { GolfRound, Course } from "../../types";
-import { saveToStorage, loadFromStorage, STORAGE_KEYS } from "../../utils/localStorage";
+import { GolfRound, Course, Tournament } from "../../types";
+import { saveToStorage, loadFromStorage, clearStorage, STORAGE_KEYS, GOLF_KEYS } from "../../utils/localStorage";
 import { BackyardGolfLogo } from "../../components/BackyardGolfLogo";
+import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 import "./ScoreCard.css";
 
 type ScoreCardPageProps = {
@@ -17,6 +19,8 @@ type ScoreCardPageProps = {
   collectionRef: CollectionReference;
   setCourseSelected: React.Dispatch<React.SetStateAction<Course | null>>;
   currentUserEmail: string | null;
+  activeTournament: Tournament | null;
+  setActiveTournament: React.Dispatch<React.SetStateAction<Tournament | null>>;
 };
 const ScoreCardPage = ({
   playerRounds,
@@ -26,11 +30,23 @@ const ScoreCardPage = ({
   database,
   collectionRef,
   currentUserEmail,
+  activeTournament,
+  setActiveTournament,
 }: ScoreCardPageProps) => {
+  const navigate = useNavigate();
   const [currentHole, setCurrentHole] = useState<number>(
     () => loadFromStorage<number>(STORAGE_KEYS.GOLF_CURRENT_HOLE) ?? 0
   );
+  const [quitDialogOpen, setQuitDialogOpen] = useState(false);
+
   useEffect(() => { saveToStorage(STORAGE_KEYS.GOLF_CURRENT_HOLE, currentHole); }, [currentHole]);
+
+  const handleQuitRound = () => {
+    clearStorage(...GOLF_KEYS, STORAGE_KEYS.GOLF_CURRENT_HOLE);
+    setPlayerRounds([]);
+    setCourseSelected(null);
+    navigate("/");
+  };
 
   return (
     <div className="scoreCardContainer">
@@ -66,7 +82,26 @@ const ScoreCardPage = ({
         courseSelected={courseSelected}
         setCourseSelected={setCourseSelected}
         currentUserEmail={currentUserEmail}
+        activeTournament={activeTournament}
+        setActiveTournament={setActiveTournament}
       />
+
+      <Button color="error" onClick={() => setQuitDialogOpen(true)}>
+        Quit Round
+      </Button>
+
+      <Dialog open={quitDialogOpen} onClose={() => setQuitDialogOpen(false)}>
+        <DialogTitle>Quit Round?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Your round progress will be lost.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setQuitDialogOpen(false)}>Keep Playing</Button>
+          <Button color="error" onClick={handleQuitRound}>Quit</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

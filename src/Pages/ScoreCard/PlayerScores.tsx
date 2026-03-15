@@ -16,36 +16,16 @@ export const PlayerScores = ({
   currentHole,
   courseSelected,
 }: PlayerScoresProps) => {
-  const incrementPlayerScore = (r: number) => {
-    const updatedScores = playerRounds.map((player, index) => {
-      if (r === index) {
-        if (!playerRounds[index].scores[currentHole] && courseSelected) {
-          playerRounds[index].scores[currentHole] =
-            courseSelected.holes[currentHole].par;
-        }
-
-        playerRounds[index].scores[currentHole] += 1;
-      }
-      return player;
-    });
-
-    setPlayerRounds(updatedScores);
-  };
-  const decrementPlayerScore = (r: number) => {
-    const updatedScores = playerRounds.map((player, index) => {
-      if (r === index) {
-        if (!playerRounds[index].scores[currentHole] && courseSelected) {
-          playerRounds[index].scores[currentHole] =
-            courseSelected.holes[currentHole].par;
-        }
-
-        playerRounds[index].scores[currentHole] -= 1;
-      }
-
-      return player;
-    });
-
-    setPlayerRounds(updatedScores);
+  const adjustScore = (r: number, delta: number) => {
+    setPlayerRounds((prev) =>
+      prev.map((player, index) => {
+        if (index !== r) return player;
+        const current = player.scores[currentHole] || (courseSelected?.holes[currentHole].par ?? 0);
+        const newScores = [...player.scores];
+        newScores[currentHole] = current + delta;
+        return { ...player, scores: newScores };
+      })
+    );
   };
 
   return (
@@ -58,7 +38,7 @@ export const PlayerScores = ({
             <Button
               className="button"
               disabled={player.scores[currentHole] <= 1}
-              onClick={() => decrementPlayerScore(index)}
+              onClick={() => adjustScore(index, -1)}
             >
               -
             </Button>
@@ -70,7 +50,7 @@ export const PlayerScores = ({
             <Button
               className="button"
               disabled={player.scores[currentHole] >= maxScore}
-              onClick={() => incrementPlayerScore(index)}
+              onClick={() => adjustScore(index, 1)}
             >
               +
             </Button>

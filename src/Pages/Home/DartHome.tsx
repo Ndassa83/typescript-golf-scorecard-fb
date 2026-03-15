@@ -10,9 +10,9 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
-import { DartRound, FetchedPlayer } from "../../types";
+import { DartRound, FetchedPlayer, PlayerOptionType } from "../../types";
 import { useState, useEffect } from "react";
-import DartScoreCard from "../ScoreCard/DartScoreCard";
+import { Navigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { CollectionReference } from "firebase/firestore";
 import {
@@ -22,6 +22,8 @@ import {
   STORAGE_KEYS,
   DART_KEYS,
 } from "../../utils/localStorage";
+import { PlayerSelector } from "./PlayerSelector";
+import { PlayerCreator } from "./PlayerCreator";
 import "./Home.css";
 
 type DartHomeProps = {
@@ -29,9 +31,26 @@ type DartHomeProps = {
   setCurrentPlayers: React.Dispatch<React.SetStateAction<FetchedPlayer[]>>;
   dartRoundCollection: CollectionReference;
   currentUserEmail: string | null;
+  playerOptions: PlayerOptionType[];
+  setCreatedPlayerId: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setCreatedPlayerName: React.Dispatch<React.SetStateAction<string>>;
+  createdPlayerName: string | null;
+  playerImage: string | null;
+  setPlayerImage: React.Dispatch<React.SetStateAction<string | null>>;
+  setDartGameActive: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const DartHome = ({ currentPlayers, dartRoundCollection, currentUserEmail }: DartHomeProps) => {
+const DartHome = ({
+  currentPlayers,
+  setCurrentPlayers,
+  playerOptions,
+  setCreatedPlayerId,
+  setCreatedPlayerName,
+  createdPlayerName,
+  playerImage,
+  setPlayerImage,
+  setDartGameActive,
+}: DartHomeProps) => {
   const [curGameType, setCurGameType] = useState<string>(
     () => loadFromStorage<string>(STORAGE_KEYS.DARTS_CUR_GAME_TYPE) ?? "Full Match"
   );
@@ -44,10 +63,15 @@ const DartHome = ({ currentPlayers, dartRoundCollection, currentUserEmail }: Dar
   const [showResumeModal, setShowResumeModal] = useState<boolean>(
     () => loadFromStorage<boolean>(STORAGE_KEYS.DARTS_GAME_ACTIVE) ?? false
   );
+  const [showPlayerError, setShowPlayerError] = useState(false);
 
   useEffect(() => { saveToStorage(STORAGE_KEYS.DARTS_CUR_GAME_TYPE, curGameType); }, [curGameType]);
   useEffect(() => { saveToStorage(STORAGE_KEYS.DARTS_CUR_PLAYER_GAMES, curPlayerGames); }, [curPlayerGames]);
-  useEffect(() => { saveToStorage(STORAGE_KEYS.DARTS_GAME_ACTIVE, gameActive); }, [gameActive]);
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.DARTS_GAME_ACTIVE, gameActive);
+    setDartGameActive(gameActive);
+  }, [gameActive]);
+  useEffect(() => { if (currentPlayers.length > 0) setShowPlayerError(false); }, [currentPlayers]);
 
   const handleDiscardGame = () => {
     clearStorage(...DART_KEYS);
@@ -70,12 +94,18 @@ const DartHome = ({ currentPlayers, dartRoundCollection, currentUserEmail }: Dar
         matchWinner: false,
       }));
 
+      setShowPlayerError(false);
+      saveToStorage(STORAGE_KEYS.DARTS_CUR_PLAYER_GAMES, gamesArr);
+      saveToStorage(STORAGE_KEYS.DARTS_GAME_ACTIVE, true);
       setCurPlayerGames(gamesArr);
       setGameActive(true);
     } else {
-      alert("Please add players");
+      setShowPlayerError(true);
     }
   };
+
+  const isSoloMultiPlayer = curGameType === "Solo" && currentPlayers.length > 1;
+  const canStart = currentPlayers.length > 0 && !isSoloMultiPlayer;
 
   return (
     <div className="dartHomeContainer">
@@ -95,49 +125,93 @@ const DartHome = ({ currentPlayers, dartRoundCollection, currentUserEmail }: Dar
           </Button>
         </DialogActions>
       </Dialog>
+
       {!gameActive && (
         <div className="page-container">
-          <div className="gameSelect">
-            <div className="gameSelectLabel">Select a game mode to begin</div>
-            <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-label">Game Type</InputLabel>
-              <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={curGameType}
-                defaultValue={"Full Match"}
-                label="Game Type"
-                onChange={(event) => setCurGameType(event.target.value)}
+          <div className="two-col-layout">
+            {/* Left column: player selection */}
+            <div className="golfHomeLeftCol">
+              <div className="homeStepHeader">
+                <span className="homeStepBadge">1</span>
+                <h2 className="homeHeading">Add Players</h2>
+              </div>
+              <PlayerSelector
+                playerOptions={playerOptions}
+                currentPlayers={currentPlayers}
+                setCurrentPlayers={setCurrentPlayers}
+              />
+              <div className="homeCreatorRow">
+                <span className="homeSubHeading">New player?</span>
+                <PlayerCreator
+                  setCreatedPlayerId={setCreatedPlayerId}
+                  setCreatedPlayerName={setCreatedPlayerName}
+                  createdPlayerName={createdPlayerName}
+                  playerOptions={playerOptions}
+                  playerImage={playerImage}
+                  setPlayerImage={setPlayerImage}
+                />
+              </div>
+            </div>
+
+            {/* Right column: game setup + start */}
+            <div className="golfHomeRightCol">
+              <div className="homeStepHeader">
+                <span className="homeStepBadge">2</span>
+                <h2 className="homeHeading">Game Setup</h2>
+              </div>
+
+              <div className="readyPanel">
+                <div className="readyRow">
+                  <span className="readyLabel">Players</span>
+                  {currentPlayers.length === 0 ? (
+                    <span className="readyEmpty">None selected</span>
+                  ) : (
+                    <div className="readyPlayerList">
+                      {currentPlayers.map((p) => (
+                        <span key={p.userId} className="readyPlayerChip">{p.userName}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="readyRow">
+                  <span className="readyLabel">Game Type</span>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="dart-game-type-label">Game Type</InputLabel>
+                    <Select
+                      labelId="dart-game-type-label"
+                      value={curGameType}
+                      label="Game Type"
+                      onChange={(e) => setCurGameType(e.target.value)}
+                    >
+                      <MenuItem value="Full Match">Full Match</MenuItem>
+                      <MenuItem value="One Set">One Set</MenuItem>
+                      <MenuItem value="Solo">Solo 10-Toss</MenuItem>
+                    </Select>
+                  </FormControl>
+                  {isSoloMultiPlayer && (
+                    <span className="soloWarning">Solo is single-player only</span>
+                  )}
+                </div>
+              </div>
+
+              {showPlayerError && (
+                <span className="soloWarning">Add at least one player to start</span>
+              )}
+
+              <Button
+                variant="contained"
+                disabled={!canStart}
+                className="startRoundBtn"
+                onClick={handleGameStart}
               >
-                <MenuItem value={"Full Match"}> Full Match</MenuItem>
-                <MenuItem value={"One Set"}>One Set</MenuItem>
-                <MenuItem value={"Solo"}>Solo 10-Toss</MenuItem>
-              </Select>
-            </FormControl>
-            <Button
-              disabled={curGameType === "Solo" && currentPlayers.length > 1}
-              onClick={handleGameStart}
-            >
-              Start Game!
-            </Button>
-            <div className="gameSelectLabel" style={{ fontSize: 16 }}>Players:</div>
-            <div>
-              {currentPlayers.map((player) => (
-                <div key={player.userId}>{player.userName}</div>
-              ))}
+                Start Game
+              </Button>
             </div>
           </div>
         </div>
       )}
-      {gameActive && (
-        <DartScoreCard
-          curPlayerGames={curPlayerGames}
-          setCurPlayerGames={setCurPlayerGames}
-          curGameType={curGameType}
-          dartRoundCollection={dartRoundCollection}
-          currentUserEmail={currentUserEmail}
-        />
-      )}
+      {gameActive && <Navigate to="/DartScoreCard" replace />}
     </div>
   );
 };

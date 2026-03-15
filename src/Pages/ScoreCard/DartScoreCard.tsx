@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { saveToStorage, loadFromStorage, STORAGE_KEYS } from "../../utils/localStorage";
+import { useNavigate } from "react-router-dom";
+import { saveToStorage, loadFromStorage, clearStorage, STORAGE_KEYS, DART_KEYS } from "../../utils/localStorage";
+import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 import { CollectionReference } from "firebase/firestore";
 import { TieBreaker } from "./TieBreaker";
 import { DartRound } from "../../types";
@@ -10,19 +12,19 @@ import { TossInput } from "./TossInput";
 import { GameResults } from "./GameResults";
 
 type DartScoreCardProps = {
-  curPlayerGames: DartRound[];
-  setCurPlayerGames: React.Dispatch<React.SetStateAction<DartRound[]>>;
-  curGameType: string;
   dartRoundCollection: CollectionReference;
   currentUserEmail: string | null;
 };
 const DartScoreCard = ({
-  curPlayerGames,
-  setCurPlayerGames,
-  curGameType,
   dartRoundCollection,
   currentUserEmail,
 }: DartScoreCardProps) => {
+  const [curPlayerGames, setCurPlayerGames] = useState<DartRound[]>(
+    () => loadFromStorage<DartRound[]>(STORAGE_KEYS.DARTS_CUR_PLAYER_GAMES) ?? []
+  );
+  const [curGameType] = useState<string>(
+    () => loadFromStorage<string>(STORAGE_KEYS.DARTS_CUR_GAME_TYPE) ?? "Full Match"
+  );
   const [currentToss, setCurrentToss] = useState<number>(
     () => loadFromStorage<number>(STORAGE_KEYS.DARTS_CURRENT_TOSS) ?? 0
   );
@@ -32,6 +34,7 @@ const DartScoreCard = ({
   const [tieBreaker, setTieBreaker] = useState<boolean>(false);
   const [winningPlayer, setWinningPlayer] = useState<DartRound | null>(null);
 
+  useEffect(() => { saveToStorage(STORAGE_KEYS.DARTS_CUR_PLAYER_GAMES, curPlayerGames); }, [curPlayerGames]);
   useEffect(() => { saveToStorage(STORAGE_KEYS.DARTS_CURRENT_TOSS, currentToss); }, [currentToss]);
   useEffect(() => { saveToStorage(STORAGE_KEYS.DARTS_GAME_LENGTH, gameLength); }, [gameLength]);
 
@@ -81,6 +84,14 @@ const DartScoreCard = ({
     }
   }, [curGameType]);
 
+  const navigate = useNavigate();
+  const [abandonDialogOpen, setAbandonDialogOpen] = useState(false);
+
+  const handleAbandonMatch = () => {
+    clearStorage(...DART_KEYS);
+    navigate("/");
+  };
+
   return (
     <div className="scoreCardContainer">
       <GarageDartsLogo className="gameLogo" />
@@ -128,6 +139,23 @@ const DartScoreCard = ({
         gameLength={gameLength}
         setGameLength={setGameLength}
       />
+
+      <Button color="error" onClick={() => setAbandonDialogOpen(true)}>
+        Abandon Match
+      </Button>
+
+      <Dialog open={abandonDialogOpen} onClose={() => setAbandonDialogOpen(false)}>
+        <DialogTitle>Abandon Match?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Your match progress will be lost.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAbandonDialogOpen(false)}>Keep Playing</Button>
+          <Button color="error" onClick={handleAbandonMatch}>Abandon</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

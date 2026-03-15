@@ -59,21 +59,6 @@ export const TossInput = ({
 
     if (allHaveToss) setCurrentToss((prev) => prev + 1);
   };
-  console.log(
-    "checking what values looks like before upload,",
-    curPlayerGames[0]
-  );
-  //this is the next step
-  useEffect(() => {
-    const checkTie = () => {
-      //go through each users scores every 3 tosses. add them up and compare to every other users scores. whichever user is highest add 1 to their gameWins
-      // first check if no player has 2 Set wins.
-      //if no player has 2 set wins, add 3 to gameLength, continue game
-      //if a player has 2 set wins, Finish game, prompt user to post round
-    };
-  }, [currentToss]);
-
-  console.log("Toss :", currentToss);
   return (
     <div className="tossInputContainer">
       <div className="tossGrid">

@@ -1,11 +1,12 @@
 import { Autocomplete, TextField } from "@mui/material";
-import { PlayerOptionType, CourseOptionType, Course } from "../../types";
+import { PlayerOptionType, CourseOptionType, Course, FetchedPlayer } from "../../types";
 import "./StatFilter.css";
 
 type StatFilterProps = {
   playerOptions: PlayerOptionType[];
   courseOptions: CourseOptionType[];
   selectedCourse: Course | null;
+  selectedPlayer: FetchedPlayer | null;
   dateFrom: string;
   dateTo: string;
   hasActiveFilters: boolean;
@@ -20,6 +21,7 @@ const StatFilter = ({
   playerOptions,
   courseOptions,
   selectedCourse,
+  selectedPlayer,
   dateFrom,
   dateTo,
   hasActiveFilters,
@@ -32,6 +34,11 @@ const StatFilter = ({
   const selectedCourseOption =
     selectedCourse
       ? courseOptions.find((o) => o.value.courseId === selectedCourse.courseId) ?? null
+      : null;
+
+  const selectedPlayerOption =
+    selectedPlayer
+      ? playerOptions.find((o) => o.value.userId === selectedPlayer.userId) ?? null
       : null;
 
   return (
@@ -52,6 +59,7 @@ const StatFilter = ({
         options={playerOptions}
         getOptionLabel={(option) => option.label}
         renderInput={(params) => <TextField {...params} label="Players" />}
+        value={selectedPlayerOption}
         onChange={handleSelectedPlayerChange}
         size="small"
         slotProps={{ listbox: { className: "muiListbox" } }}

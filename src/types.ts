@@ -19,6 +19,7 @@ export type GolfRound = {
   scores: number[];
   date: string;
   currentCourse: Course;
+  tournamentId?: string;
 };
 
 export type CourseOptionType = {
@@ -29,11 +30,43 @@ export type PlayerOptionType = {
   label: string;
   value: FetchedPlayer;
 };
+export type TournamentBadge = {
+  tournamentId: string;
+  tournamentName: string;
+  awardedAt: string;
+};
+
+export type Tournament = {
+  tournamentId: string;
+  name: string;
+  status: "active" | "completed";
+  createdBy: string;
+  createdAt: string;
+  completedAt: string | null;
+  participantIds: number[];
+  roundCount: number;
+  targetRounds: number;
+  lockedCourseId: string | null;
+  lockedCourseName: string | null;
+  winnerId: number | null;
+  winnerName: string | null;
+};
+
+export type TournamentStandingRow = {
+  userId: number;
+  name: string;
+  rounds: number;
+  totalStrokes: number;
+  totalPar: number;
+  scoreToPar: number;
+};
+
 export type FetchedPlayer = {
   userId: number;
   userName: string;
   avatar: string | null; //when i add profile pics make it a firestore link
   googleUid?: string;
+  badges?: TournamentBadge[];
 };
 
 export type CourseRoundsMap = {
