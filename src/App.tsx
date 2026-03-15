@@ -41,15 +41,13 @@ import {
 } from "./types";
 import GolfHome from "./Pages/Home/GolfHome";
 import ScoreCard from "./Pages/ScoreCard/ScoreCard";
-import StatPage from "./Pages/StatPage/StatPage";
+import StatsHub from "./Pages/StatPage/StatsHub";
 import NotFound from "./Pages/NotFound/NotFound";
-import Dashboard from "./Pages/Dashboard/Dashboard";
 import logo from "./images/products-products-AIMMG107.png";
 import "./App.css";
 import Home from "./Pages/Home/Home";
 import DartHome from "./Pages/Home/DartHome";
 import DartScoreCard from "./Pages/ScoreCard/DartScoreCard";
-import DartStatPage from "./Pages/StatPage/DartStatPage";
 import TournamentHome from "./Pages/Tournament/TournamentHome";
 import TournamentStandings from "./Pages/Tournament/TournamentStandings";
 
@@ -300,23 +298,13 @@ const App = () => {
             </Button>
 
             <Button onClick={closeMenu}>
-              <Link className="navOptions" to="/StatPage">
-                Golf Stats
-              </Link>
-            </Button>
-            <Button onClick={closeMenu}>
-              <Link className="navOptions" to="/DartStatPage">
-                Dart Stats
+              <Link className="navOptions" to="/Stats">
+                Stats
               </Link>
             </Button>
             <Button onClick={closeMenu}>
               <Link className="navOptions" to="/Tournament">
                 Tournament
-              </Link>
-            </Button>
-            <Button onClick={closeMenu}>
-              <Link className="navOptions" to="/Dashboard">
-                My Stats
               </Link>
             </Button>
             {courseSelected && playerRounds.length > 0 && (
@@ -478,24 +466,12 @@ const App = () => {
             }
           />
           <Route
-            path="/StatPage"
+            path="/Stats"
             element={
-              <StatPage
+              <StatsHub
                 playerOptions={playerOptions}
                 courseOptions={courseOptions}
-              />
-            }
-          />
-          <Route
-            path="/DartStatPage"
-            element={<DartStatPage playerOptions={playerOptions} />}
-          />
-          <Route
-            path="/Dashboard"
-            element={
-              <Dashboard
                 database={database}
-                playerOptions={playerOptions}
                 currentUser={currentUser}
                 onSignIn={handleSignIn}
               />

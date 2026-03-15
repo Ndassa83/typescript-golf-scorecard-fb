@@ -26,6 +26,7 @@ import {
   GolfRound,
 } from "../../types";
 import { clearStorage, TOURNAMENT_KEYS } from "../../utils/localStorage";
+import { BackyardTourneyLogo } from "../../components/BackyardTourneyLogo";
 import "./Tournament.css";
 
 type TournamentHomeProps = {
@@ -201,7 +202,7 @@ const TournamentHome = ({
   if (activeTournament) {
     return (
       <div className="tournamentPage">
-        <h1 className="tournamentHeading">Tournament</h1>
+        <BackyardTourneyLogo className="gameLogo" />
 
         <div className="tournamentPanel">
           <h2 className="tournamentSubHeading">{activeTournament.name}</h2>

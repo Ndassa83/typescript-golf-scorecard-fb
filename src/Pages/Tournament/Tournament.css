@@ -4,6 +4,14 @@
   padding: 24px 24px 48px;
 }
 
+.tournamentPage .gameLogo {
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 16px;
+}
+
 .tournamentHeading {
   font-family: 'Fredoka One', cursive;
   font-size: 28px;
