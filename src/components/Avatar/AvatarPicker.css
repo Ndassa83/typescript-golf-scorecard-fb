@@ -1,0 +1,30 @@
+.avatarPickerGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.avatarPickerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: 2.5px solid #ddd;
+  border-radius: 12px;
+  background: var(--bg-cream);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.avatarPickerBtn:hover {
+  border-color: var(--green-primary);
+  background: var(--yellow-accent);
+  transform: scale(1.06);
+}
+
+.avatarPickerBtnSelected {
+  border-color: var(--green-primary) !important;
+  background: var(--yellow-accent) !important;
+  box-shadow: 0 0 0 2px var(--green-primary);
+}

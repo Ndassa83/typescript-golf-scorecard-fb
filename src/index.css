@@ -9,6 +9,54 @@
   --page-padding: 24px;
 }
 
+[data-theme="dark"] {
+  --green-primary: #5aad4e;
+  --yellow-accent: #c9981a;
+  --red-accent: #e05858;
+  --blue-sky: #1e3a5f;
+  --bg-cream: #1e1e2e;
+  --text-dark: #e2d9c8;
+}
+
+/* ── Dark mode hardcoded overrides ───────────────────────────────────── */
+[data-theme="dark"] .MuiButton-root.Mui-disabled {
+  border-color: #555 !important;
+  color: #666 !important;
+  background-color: #2a2a3e !important;
+}
+
+[data-theme="dark"] .MuiAutocomplete-option {
+  border-bottom-color: #3a3a5a !important;
+}
+
+[data-theme="dark"] .MuiMenuItem-root {
+  border-bottom-color: #3a3a5a !important;
+}
+
+[data-theme="dark"] .MuiOutlinedInput-root {
+  color: var(--text-dark) !important;
+}
+
+[data-theme="dark"] .MuiOutlinedInput-notchedOutline {
+  border-color: var(--green-primary) !important;
+}
+
+[data-theme="dark"] .MuiInputLabel-root {
+  color: #999 !important;
+}
+
+[data-theme="dark"] .MuiInputBase-input {
+  color: var(--text-dark) !important;
+}
+
+[data-theme="dark"] .MuiDialogContentText-root {
+  color: var(--text-dark) !important;
+}
+
+[data-theme="dark"] .MuiDialogContent-root {
+  color: var(--text-dark) !important;
+}
+
 /* ── Shared layout utilities ─────────────────────────────────────────── */
 .page-container {
   width: 100%;

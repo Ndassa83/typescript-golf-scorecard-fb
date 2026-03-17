@@ -8,6 +8,12 @@ import {
   orderBy,
   where,
 } from "firebase/firestore";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 import { User } from "firebase/auth";
 import { Button, Tabs, Tab, useMediaQuery } from "@mui/material";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
@@ -30,6 +36,9 @@ import {
 } from "../../utils/dartStatHelpers";
 import { ThrowPieChart } from "../../components/ThrowPieChart";
 import { AdminPanel } from "./AdminPanel";
+import AvatarIcon from "../../components/Avatar/AvatarIcon";
+import AvatarPicker from "../../components/Avatar/AvatarPicker";
+import { getH2HForPlayer, H2HRecord } from "../../utils/h2hHelpers";
 import "./Dashboard.css";
 
 const courseSelectStyles = {
@@ -69,6 +78,7 @@ type Props = {
   playerOptions: PlayerOptionType[];
   currentUser: User | null;
   onSignIn: () => void;
+  onUpdatePlayerAvatar: (userId: number, avatarId: string) => Promise<void>;
 };
 
 const formatScoreToPar = (diff: number): { text: string; cls: string } => {
@@ -91,6 +101,7 @@ const Dashboard = ({
   playerOptions,
   currentUser,
   onSignIn,
+  onUpdatePlayerAvatar,
 }: Props) => {
   const [golfRounds, setGolfRounds] = useState<GolfRound[]>([]);
   const [dartRounds, setDartRounds] = useState<DartRound[]>([]);
@@ -106,9 +117,12 @@ const Dashboard = ({
     null,
   );
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+  const [pendingAvatar, setPendingAvatar] = useState<string | null>(null);
   const [golfCourseFilter, setGolfCourseFilter] = useState<string | null>(null);
   const [golfDateFrom, setGolfDateFrom] = useState("");
   const [golfDateTo, setGolfDateTo] = useState("");
+  const [rivalriesVisible, setRivalriesVisible] = useState(5);
 
   const linkedPlayer = useMemo(
     () =>
@@ -256,6 +270,12 @@ const Dashboard = ({
     return { totalRounds: myGolfRounds.length, avg, bestDiff, mostActive };
   }, [myGolfRounds]);
 
+  // H2H rivalries (computed from all rounds, not filtered)
+  const rivalries = useMemo<H2HRecord[]>(() => {
+    if (!linkedPlayer) return [];
+    return getH2HForPlayer(golfRounds, linkedPlayer.userId, playerOptions);
+  }, [golfRounds, linkedPlayer, playerOptions]);
+
   // Dart stats
   const dartStats = useMemo(() => {
     if (!myDartRounds.length) return null;
@@ -381,6 +401,46 @@ const Dashboard = ({
           </div>
         )}
       </div>
+
+      {/* Rivalries */}
+      {rivalries.length > 0 && (
+        <div className="pastGamesCard">
+          <div className="pastGamesTitle">Rivalries</div>
+          {rivalries.slice(0, rivalriesVisible).map((r) => {
+            const total = r.wins + r.losses + r.ties;
+            return (
+              <div key={r.opponentId} className="gameCard">
+                <div className="gameCardLeft">
+                  <span className="gameCardPlayer">
+                    <AvatarIcon
+                      avatarId={playerOptions.find((p) => p.value.userId === r.opponentId)?.value.avatar}
+                      size={18}
+                      initials={r.opponentName}
+                    />
+                    {" "}{r.opponentName}
+                  </span>
+                  <span className="gameCardSub">{total} game{total !== 1 ? "s" : ""}</span>
+                </div>
+                <span className="rivalryRecord">
+                  <span className="rivalryW">{r.wins}W</span>
+                  {" · "}
+                  <span className="rivalryL">{r.losses}L</span>
+                  {r.ties > 0 && <>{" · "}<span className="rivalryT">{r.ties}T</span></>}
+                </span>
+              </div>
+            );
+          })}
+          {rivalriesVisible < rivalries.length && (
+            <Button
+              className="loadMoreBtn"
+              variant="outlined"
+              onClick={() => setRivalriesVisible((v) => v + 5)}
+            >
+              Show More
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Tournaments */}
       {myTournaments.length > 0 && (
@@ -693,6 +753,42 @@ const Dashboard = ({
         </div>
       ) : (
         <>
+          {/* Profile card */}
+          <div className="dashboardProfileCard">
+            <AvatarIcon
+              avatarId={linkedPlayer.avatar}
+              size={64}
+              initials={linkedPlayer.userName}
+            />
+            <div className="dashboardProfileInfo">
+              <div className="dashboardProfileName">{linkedPlayer.userName}</div>
+              <Button size="small" onClick={() => { setPendingAvatar(linkedPlayer.avatar ?? null); setAvatarPickerOpen(true); }}>
+                Edit Avatar
+              </Button>
+            </div>
+          </div>
+
+          <Dialog open={avatarPickerOpen} onClose={() => setAvatarPickerOpen(false)} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ fontFamily: "'Fredoka One', cursive" }}>Choose Avatar</DialogTitle>
+            <DialogContent>
+              <AvatarPicker selected={pendingAvatar} onSelect={setPendingAvatar} />
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+              <Button onClick={() => setAvatarPickerOpen(false)}>Cancel</Button>
+              <Button
+                disabled={!pendingAvatar}
+                onClick={async () => {
+                  if (pendingAvatar) {
+                    await onUpdatePlayerAvatar(linkedPlayer.userId, pendingAvatar);
+                  }
+                  setAvatarPickerOpen(false);
+                }}
+              >
+                Save
+              </Button>
+            </DialogActions>
+          </Dialog>
+
           {isMobile ? (
             <div className="mobileTabs">
               <Tabs

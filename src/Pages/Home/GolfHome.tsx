@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
@@ -11,12 +11,15 @@ import {
   Tooltip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import { Firestore, collection, getDocs } from "firebase/firestore";
 import { CourseCreator } from "./CourseCreator";
 import { CourseEditor } from "./CourseEditor";
 import CourseSearch from "./CourseSearch";
 import { PlayerSelector } from "./PlayerSelector";
 import { PlayerCreator } from "./PlayerCreator";
+import AvatarIcon from "../../components/Avatar/AvatarIcon";
 import { clearStorage, GOLF_KEYS } from "../../utils/localStorage";
+import { getH2HBetween } from "../../utils/h2hHelpers";
 import dayjs from "dayjs";
 
 import {
@@ -47,6 +50,7 @@ type GolfHomeProps = {
   createdPlayerName: string | null;
   playerImage: string | null;
   setPlayerImage: React.Dispatch<React.SetStateAction<string | null>>;
+  database: Firestore;
 };
 
 const GolfHome = ({
@@ -67,6 +71,7 @@ const GolfHome = ({
   createdPlayerName,
   playerImage,
   setPlayerImage,
+  database,
 }: GolfHomeProps) => {
   const navigate = useNavigate();
   const [pendingCourse, setPendingCourse] = useState<Course | null>(null);
@@ -75,6 +80,8 @@ const GolfHome = ({
   );
   const [editingCourse, setEditingCourse] = useState(false);
   const [playOutsideTournament, setPlayOutsideTournament] = useState(false);
+  const [allRounds, setAllRounds] = useState<GolfRound[]>([]);
+  const [roundsFetched, setRoundsFetched] = useState(false);
 
   const handleCourseSelect = (course: Course | null) => {
     if (playerRounds.length > 0) {
@@ -150,6 +157,31 @@ const GolfHome = ({
       if (locked) setCourseSelected(locked.value);
     }
   }, [courseLocked, activeTournament?.lockedCourseId, courseOptions.length]);
+
+  // Fetch all rounds once when 2+ players are selected (for H2H display)
+  useEffect(() => {
+    if (currentPlayers.length < 2 || roundsFetched) return;
+    getDocs(collection(database, "playerData")).then((snap) => {
+      setAllRounds(snap.docs.map((d) => d.data() as GolfRound));
+      setRoundsFetched(true);
+    });
+  }, [currentPlayers.length, roundsFetched]);
+
+  const h2hPairs = useMemo(() => {
+    if (currentPlayers.length < 2 || allRounds.length === 0) return [];
+    const pairs: { nameA: string; nameB: string; winsA: number; winsB: number; ties: number }[] = [];
+    for (let i = 0; i < currentPlayers.length; i++) {
+      for (let j = i + 1; j < currentPlayers.length; j++) {
+        const a = currentPlayers[i];
+        const b = currentPlayers[j];
+        const { winsA, winsB, ties } = getH2HBetween(allRounds, a.userId, b.userId);
+        if (winsA + winsB + ties > 0) {
+          pairs.push({ nameA: a.userName, nameB: b.userName, winsA, winsB, ties });
+        }
+      }
+    }
+    return pairs;
+  }, [currentPlayers, allRounds]);
 
   const canStart = courseSelected && currentPlayers.length > 0;
 
@@ -248,11 +280,36 @@ const GolfHome = ({
               ) : (
                 <div className="readyPlayerList">
                   {currentPlayers.map((p) => (
-                    <span key={p.userId} className="readyPlayerChip">{p.userName}</span>
+                    <span key={p.userId} className="readyPlayerChip">
+                      <AvatarIcon avatarId={p.avatar} size={20} initials={p.userName} />
+                      {p.userName}
+                    </span>
                   ))}
                 </div>
               )}
             </div>
+
+            {h2hPairs.length > 0 && (
+              <div className="readyRow">
+                <span className="readyLabel">H2H</span>
+                <div className="readyH2HList">
+                  {h2hPairs.map((p, i) => (
+                    <span key={i} className="readyH2HBadge">
+                      <span className="readyH2HName">{p.nameA}</span>
+                      {" "}
+                      <span className="readyH2HRecord">
+                        <span className="readyH2HW">{p.winsA}</span>
+                        {"–"}
+                        <span className="readyH2HL">{p.winsB}</span>
+                        {p.ties > 0 && <>{"–"}<span className="readyH2HT">{p.ties}</span></>}
+                      </span>
+                      {" "}
+                      <span className="readyH2HName">{p.nameB}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="readyRow">
               <span className="readyLabel">Course</span>

@@ -1,4 +1,5 @@
-import { GolfRound, Course, DartRound } from "../../types";
+import { DartRound, PlayerOptionType } from "../../types";
+import AvatarIcon from "../../components/Avatar/AvatarIcon";
 import dayjs from "dayjs";
 import "./ScoreCardTable.css";
 import "./DartScoreCard.css";
@@ -22,6 +23,7 @@ type DartScoreCardTableProps = {
   dartRoundCollection: CollectionReference;
   checkIfWinner: () => void;
   currentUserEmail: string | null;
+  playerOptions?: PlayerOptionType[];
 };
 export const DartScoreCardTable = ({
   curPlayerGames,
@@ -38,6 +40,7 @@ export const DartScoreCardTable = ({
   winningPlayer,
   checkIfWinner,
   currentUserEmail,
+  playerOptions,
 }: DartScoreCardTableProps) => {
   const totalPlayerScores: number[] = curPlayerGames.map((player) => {
     return player.scores
@@ -151,18 +154,23 @@ export const DartScoreCardTable = ({
     <div className="scoreCard">
       <div className="titles">
         <div className="cell cellTitles">Toss</div>
-        {curPlayerGames?.map((player) => (
-          <div key={player.userId} className="cell cellTitles scores playerDateDiv">
-            <div>
-              {player.name.length > 9
-                ? player.name.substring(0, 9) + "..."
-                : player.name}
+        {curPlayerGames?.map((player) => {
+          const avatarId = playerOptions?.find(
+            (o) => o.value.userId === player.userId
+          )?.value.avatar;
+          return (
+            <div key={player.userId} className="cell cellTitles scores playerDateDiv">
+              <div className="playerLabelRow">
+                <AvatarIcon avatarId={avatarId} size={18} initials={player.name} />
+                <span>
+                  {player.name.length > 7
+                    ? player.name.substring(0, 7) + "…"
+                    : player.name}
+                </span>
+              </div>
             </div>
-            {/* <div className="dateOfRound">
-                {showDate ? dayjs(player.date).format("M/D/YY") : ""}{" "}
-              </div> */}
-          </div>
-        ))}
+          );
+        })}
       </div>
       {[...Array(gameLength)].map((_, index) => {
         const cellClassName = `cell ${

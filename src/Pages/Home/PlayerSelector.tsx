@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Autocomplete, TextField, Chip } from "@mui/material";
+import { Autocomplete, TextField } from "@mui/material";
 import "./Selectors.css";
 import { PlayerOptionType, FetchedPlayer } from "../../types";
+import AvatarIcon from "../../components/Avatar/AvatarIcon";
 
 type PlayerSelectorProps = {
   playerOptions: PlayerOptionType[];
@@ -51,12 +52,19 @@ export const PlayerSelector = ({
 
       <div className="playerDetails">
         {currentPlayers?.map((player) => (
-          <Chip
-            key={player.userId}
-            label={player.userName}
-            onDelete={() => handleDeletePlayer(player.userId)}
-            className="playerChip"
-          />
+          <div key={player.userId} className="playerChip">
+            <span className="playerChipLabel">
+              <AvatarIcon avatarId={player.avatar} size={20} initials={player.userName} />
+              {player.userName}
+            </span>
+            <button
+              className="playerChipDelete"
+              onClick={() => handleDeletePlayer(player.userId)}
+              aria-label={`Remove ${player.userName}`}
+            >
+              ✕
+            </button>
+          </div>
         ))}
       </div>
     </div>

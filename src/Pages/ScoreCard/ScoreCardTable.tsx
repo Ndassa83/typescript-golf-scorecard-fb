@@ -1,6 +1,7 @@
-import { GolfRound, Course, Hole } from "../../types";
+import { GolfRound, Course, Hole, PlayerOptionType } from "../../types";
 import dayjs from "dayjs";
 import { useMediaQuery } from "@mui/material";
+import AvatarIcon from "../../components/Avatar/AvatarIcon";
 import "./ScoreCardTable.css";
 
 type ScoreCardProps = {
@@ -8,6 +9,7 @@ type ScoreCardProps = {
   courseSelected: Course | null;
   currentHole?: number;
   showDate?: boolean;
+  playerOptions?: PlayerOptionType[];
 };
 
 export const ScoreCardTable = ({
@@ -15,6 +17,7 @@ export const ScoreCardTable = ({
   courseSelected,
   currentHole,
   showDate,
+  playerOptions,
 }: ScoreCardProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const holes = courseSelected?.holes ?? [];
@@ -23,24 +26,58 @@ export const ScoreCardTable = ({
     player.scores.reduce((acc, cur) => cur + acc, 0)
   );
 
+  const formatStp = (val: number) =>
+    val === 0 ? "E" : val > 0 ? `+${val}` : `${val}`;
+
+  const stpClass = (val: number) =>
+    val < 0 ? "stpUnder" : val > 0 ? "stpOver" : "stpEven";
+
+  const parLabelClass = (score: number | undefined, par: number) => {
+    if (score === undefined) return "";
+    const diff = score - par;
+    if (diff <= -2) return " score-eagle";
+    if (diff === -1) return " score-birdie";
+    if (diff === 1) return " score-bogey";
+    if (diff >= 2) return " score-dbl-bogey";
+    return "";
+  };
+
   const renderLabels = () => (
     <div className="titles">
       <div className="cell cellTitles">Hole</div>
       <div className="cell cellTitles">Yards</div>
       <div className="cell cellTitles">Par</div>
       <div className="cell cellTitles">Handicap</div>
-      {playerRounds.map((player) => (
-        <div key={player.name} className="cell cellTitles scores playerDateDiv">
-          <div>
-            {player.name.length > 9
-              ? player.name.substring(0, 9) + "..."
-              : player.name}
+      {playerRounds.map((player) => {
+        const playedCount = player.scores.length;
+        const stpVal = player.scores.reduce(
+          (acc, score, i) => acc + score - (holes[i]?.par ?? 0),
+          0
+        );
+        const avatarId = playerOptions?.find(
+          (o) => o.value.userId === player.userId
+        )?.value.avatar;
+        return (
+          <div key={player.name} className="cell cellTitles scores playerDateDiv">
+            <div className="playerLabelRow">
+              <AvatarIcon avatarId={avatarId} size={18} initials={player.name} />
+              <span>
+                {player.name.length > 7
+                  ? player.name.substring(0, 7) + "…"
+                  : player.name}
+              </span>
+            </div>
+            <div className="dateOfRound">
+              {showDate ? dayjs(player.date).format("M/D/YY") : ""}
+            </div>
+            {playedCount > 0 && (
+              <div className={`stpLabel ${stpClass(stpVal)}`}>
+                {formatStp(stpVal)}
+              </div>
+            )}
           </div>
-          <div className="dateOfRound">
-            {showDate ? dayjs(player.date).format("M/D/YY") : ""}
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 
@@ -55,14 +92,18 @@ export const ScoreCardTable = ({
             {val}
           </div>
         ))}
-        {playerRounds.map((player) => (
-          <div
-            key={player.name + index}
-            className={`cell scores${isActive ? " currentHole" : ""}`}
-          >
-            {player.scores[index]}
-          </div>
-        ))}
+        {playerRounds.map((player) => {
+          const score = player.scores[index];
+          const pcls = isActive ? "" : parLabelClass(score, par);
+          return (
+            <div
+              key={player.name + index}
+              className={`cell scores${isActive ? " currentHole" : ""}`}
+            >
+              <span className={`parLabel${pcls}`}>{score}</span>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -77,14 +118,57 @@ export const ScoreCardTable = ({
             {val}
           </div>
         ))}
-        {playerRounds.map((player, pi) => (
-          <div key={pi} className="cell scores totals">
-            {indices.reduce((sum, i) => sum + (player.scores[i] ?? 0), 0)}
-          </div>
-        ))}
+        {playerRounds.map((player, pi) => {
+          const subScore = indices.reduce((sum, i) => sum + (player.scores[i] ?? 0), 0);
+          const playedInRange = indices.filter((i) => player.scores[i] !== undefined).length;
+          const subPar = indices
+            .slice(0, playedInRange)
+            .reduce((sum, i) => sum + (holes[i]?.par ?? 0), 0);
+          const stpVal = playedInRange > 0 ? subScore - subPar : null;
+          return (
+            <div key={pi} className="cell scores totals totalScoreCell">
+              <span>{subScore}</span>
+              {stpVal !== null && (
+                <span className={`subtotalStp ${stpClass(stpVal)}`}>
+                  {formatStp(stpVal)}
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   };
+
+  const renderTotalCol = (label: string) => (
+    <div className="cellInfo">
+      {[label, courseSelected?.totalYards, courseSelected?.totalPar, "-"].map(
+        (val, idx) => (
+          <div key={idx} className="cell totals">
+            {val}
+          </div>
+        )
+      )}
+      {playerRounds.map((player, idx) => {
+        const total = totalPlayerScores[idx];
+        const playedCount = player.scores.length;
+        const playedPar = holes
+          .slice(0, playedCount)
+          .reduce((sum, h) => sum + h.par, 0);
+        const stpVal = playedCount > 0 ? total - playedPar : null;
+        return (
+          <div key={idx} className="cell scores totals totalScoreCell">
+            <span>{total}</span>
+            {stpVal !== null && (
+              <span className={`subtotalStp ${stpClass(stpVal)}`}>
+                {formatStp(stpVal)}
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   // Mobile + 18-hole course: split into front 9 / back 9
   if (isMobile && holes.length > 9) {
@@ -93,64 +177,27 @@ export const ScoreCardTable = ({
 
     return (
       <div className="scoreCardScrollWrapper splitTables">
-        {/* Front 9 */}
         <div className="scoreCard">
           {renderLabels()}
           {frontIdx.map((i) => renderHoleCol(holes[i], i))}
           {renderSubtotalCol("Out", frontIdx)}
         </div>
-
-        {/* Back 9 */}
         <div className="scoreCard">
           {renderLabels()}
           {backIdx.map((i) => renderHoleCol(holes[i], i))}
-          <div className="cellInfo">
-            {[
-              "Tot",
-              courseSelected?.totalYards,
-              courseSelected?.totalPar,
-              "-",
-            ].map((val, idx) => (
-              <div key={idx} className="cell totals">
-                {val}
-              </div>
-            ))}
-            {totalPlayerScores.map((score, idx) => (
-              <div key={idx} className="cell scores totals">
-                {score}
-              </div>
-            ))}
-          </div>
+          {renderTotalCol("Tot")}
         </div>
       </div>
     );
   }
 
-  // Desktop (or ≤9-hole course): single table unchanged
+  // Desktop (or ≤9-hole course): single table
   return (
     <div className="scoreCardScrollWrapper">
       <div className="scoreCard">
         {renderLabels()}
-
         {holes.map((hole, index) => renderHoleCol(hole, index))}
-
-        <div className="cellInfo">
-          {[
-            "Total",
-            courseSelected?.totalYards,
-            courseSelected?.totalPar,
-            "-",
-          ].map((val, idx) => (
-            <div key={idx} className="cell totals">
-              {val}
-            </div>
-          ))}
-          {totalPlayerScores.map((score, idx) => (
-            <div key={idx} className="cell scores totals">
-              {score}
-            </div>
-          ))}
-        </div>
+        {renderTotalCol("Total")}
       </div>
     </div>
   );

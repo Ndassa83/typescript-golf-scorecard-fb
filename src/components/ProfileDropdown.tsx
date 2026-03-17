@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Menu, MenuItem, Divider, Button, Typography } from "@mui/material";
 import Select from "react-select";
 import { User } from "firebase/auth";
@@ -90,6 +91,14 @@ const ProfileDropdown = ({
           </Button>
         </MenuItem>
       )}
+
+      <Divider />
+
+      <MenuItem component={Link} to="/Stats?tab=personal" onClick={onClose}>
+        <Typography variant="body2">
+          My Profile
+        </Typography>
+      </MenuItem>
 
       <Divider />
 

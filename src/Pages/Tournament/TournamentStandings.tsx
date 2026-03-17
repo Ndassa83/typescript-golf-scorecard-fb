@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { Button } from "@mui/material";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import AvatarIcon from "../../components/Avatar/AvatarIcon";
 import { Tournament, TournamentStandingRow, PlayerOptionType, GolfRound } from "../../types";
 import { ScoreCardTable } from "../ScoreCard/ScoreCardTable";
 import "./Tournament.css";
@@ -144,7 +145,16 @@ const TournamentStandings = ({ database, playerOptions }: TournamentStandingsPro
                       </>
                     )}
                   </td>
-                  <td>{row.name}</td>
+                  <td>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <AvatarIcon
+                        avatarId={playerOptions.find((p) => p.value.userId === row.userId)?.value.avatar}
+                        size={24}
+                        initials={row.name}
+                      />
+                      {row.name}
+                    </div>
+                  </td>
                   <td>{row.rounds} / {tournament.targetRounds}</td>
                   <td>{row.totalStrokes > 0 ? row.totalStrokes : "—"}</td>
                   <td>{row.rounds === 0 ? "—" : formatStp(row.scoreToPar)}</td>
@@ -193,6 +203,7 @@ const TournamentStandings = ({ database, playerOptions }: TournamentStandingsPro
                 <ScoreCardTable
                   courseSelected={session.rounds[0].currentCourse}
                   playerRounds={session.rounds}
+                  playerOptions={playerOptions}
                 />
               </div>
             );

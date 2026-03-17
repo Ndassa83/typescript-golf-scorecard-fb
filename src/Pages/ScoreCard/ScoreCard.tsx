@@ -5,7 +5,7 @@ import { ScoreCardTable } from "./ScoreCardTable";
 import { HoleChanger } from "./HoleChanger";
 import { PlayerScores } from "./PlayerScores";
 import { PostRound } from "./PostRound";
-import { GolfRound, Course, Tournament } from "../../types";
+import { GolfRound, Course, Tournament, PlayerOptionType } from "../../types";
 import { saveToStorage, loadFromStorage, clearStorage, STORAGE_KEYS, GOLF_KEYS } from "../../utils/localStorage";
 import { BackyardGolfLogo } from "../../components/BackyardGolfLogo";
 import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
@@ -21,6 +21,7 @@ type ScoreCardPageProps = {
   currentUserEmail: string | null;
   activeTournament: Tournament | null;
   setActiveTournament: React.Dispatch<React.SetStateAction<Tournament | null>>;
+  playerOptions?: PlayerOptionType[];
 };
 const ScoreCardPage = ({
   playerRounds,
@@ -32,6 +33,7 @@ const ScoreCardPage = ({
   currentUserEmail,
   activeTournament,
   setActiveTournament,
+  playerOptions,
 }: ScoreCardPageProps) => {
   const navigate = useNavigate();
   const [currentHole, setCurrentHole] = useState<number>(
@@ -57,6 +59,7 @@ const ScoreCardPage = ({
         playerRounds={playerRounds}
         courseSelected={courseSelected}
         currentHole={currentHole}
+        playerOptions={playerOptions}
       />
 
       <HoleChanger

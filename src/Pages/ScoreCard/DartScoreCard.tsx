@@ -4,7 +4,7 @@ import { saveToStorage, loadFromStorage, clearStorage, STORAGE_KEYS, DART_KEYS }
 import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 import { CollectionReference } from "firebase/firestore";
 import { TieBreaker } from "./TieBreaker";
-import { DartRound } from "../../types";
+import { DartRound, PlayerOptionType } from "../../types";
 import "./ScoreCard.css";
 import { GarageDartsLogo } from "../../components/GarageDartsLogo";
 import { DartScoreCardTable } from "./DartScoreCardTable";
@@ -14,10 +14,12 @@ import { GameResults } from "./GameResults";
 type DartScoreCardProps = {
   dartRoundCollection: CollectionReference;
   currentUserEmail: string | null;
+  playerOptions?: PlayerOptionType[];
 };
 const DartScoreCard = ({
   dartRoundCollection,
   currentUserEmail,
+  playerOptions,
 }: DartScoreCardProps) => {
   const [curPlayerGames, setCurPlayerGames] = useState<DartRound[]>(
     () => loadFromStorage<DartRound[]>(STORAGE_KEYS.DARTS_CUR_PLAYER_GAMES) ?? []
@@ -119,6 +121,7 @@ const DartScoreCard = ({
           setWinningPlayer={setWinningPlayer}
           winningPlayer={winningPlayer}
           currentUserEmail={currentUserEmail}
+          playerOptions={playerOptions}
         />
       </div>
 

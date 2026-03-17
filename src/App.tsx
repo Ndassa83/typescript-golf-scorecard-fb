@@ -28,8 +28,9 @@ import {
   User,
 } from "firebase/auth";
 import { Button, IconButton, Tooltip } from "@mui/material";
-import WbSunnyIcon from "@mui/icons-material/WbSunny";
-import WbSunnyOutlinedIcon from "@mui/icons-material/WbSunnyOutlined";
+import LocalCafeIcon from "@mui/icons-material/LocalCafe";
+import NightsStayIcon from "@mui/icons-material/NightsStay";
+import LightModeIcon from "@mui/icons-material/LightMode";
 import ProfileDropdown from "./components/ProfileDropdown";
 import {
   GolfRound,
@@ -72,6 +73,13 @@ const auth = getAuth(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
 
 const App = () => {
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
+
+  useEffect(() => {
+    document.body.setAttribute("data-theme", darkMode ? "dark" : "light");
+    localStorage.setItem("darkMode", String(darkMode));
+  }, [darkMode]);
+
   const [keepAwake, setKeepAwake] = useState(true);
 
   useEffect(() => {
@@ -169,6 +177,24 @@ const App = () => {
   const handleSignIn = () =>
     signInWithPopup(auth, googleProvider).catch(() => {});
   const handleSignOut = () => signOut(auth);
+
+  const handleUpdatePlayerAvatar = async (userId: number, avatarId: string) => {
+    const q = query(
+      collection(database, "userList"),
+      where("userId", "==", userId),
+    );
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      await updateDoc(snap.docs[0].ref, { avatar: avatarId });
+      setPlayerOptions((prev) =>
+        prev.map((opt) =>
+          opt.value.userId === userId
+            ? { ...opt, value: { ...opt.value, avatar: avatarId } }
+            : opt,
+        ),
+      );
+    }
+  };
 
   const linkPlayerToGoogle = async (userId: number, googleUid: string) => {
     const q = query(
@@ -326,6 +352,19 @@ const App = () => {
           </div>
 
           <div className="navAuth">
+            <Tooltip title={darkMode ? "Dark mode: on" : "Dark mode: off"}>
+              <IconButton
+                onClick={() => setDarkMode((v) => !v)}
+                size="small"
+                sx={{ color: "white" }}
+              >
+                {darkMode ? (
+                  <NightsStayIcon fontSize="small" />
+                ) : (
+                  <LightModeIcon fontSize="small" sx={{ color: "rgba(255,255,255,0.6)" }} />
+                )}
+              </IconButton>
+            </Tooltip>
             <Tooltip
               title={
                 keepAwake ? "Screen stay-awake: on" : "Screen stay-awake: off"
@@ -336,11 +375,7 @@ const App = () => {
                 size="small"
                 sx={{ color: keepAwake ? "white" : "rgba(255,255,255,0.4)" }}
               >
-                {keepAwake ? (
-                  <WbSunnyIcon fontSize="small" />
-                ) : (
-                  <WbSunnyOutlinedIcon fontSize="small" />
-                )}
+                <LocalCafeIcon fontSize="small" />
               </IconButton>
             </Tooltip>
             {currentUser ? (
@@ -417,6 +452,7 @@ const App = () => {
                 createdPlayerName={createdPlayerName}
                 playerImage={playerImage}
                 setPlayerImage={setPlayerImage}
+                database={database}
               />
             }
           />
@@ -445,6 +481,7 @@ const App = () => {
               <DartScoreCard
                 dartRoundCollection={dartRoundCollection}
                 currentUserEmail={currentUser?.email ?? null}
+                playerOptions={playerOptions}
               />
             }
           />
@@ -462,6 +499,7 @@ const App = () => {
                 currentUserEmail={currentUser?.email ?? null}
                 activeTournament={activeTournament}
                 setActiveTournament={setActiveTournament}
+                playerOptions={playerOptions}
               />
             }
           />
@@ -474,6 +512,7 @@ const App = () => {
                 database={database}
                 currentUser={currentUser}
                 onSignIn={handleSignIn}
+                onUpdatePlayerAvatar={handleUpdatePlayerAvatar}
               />
             }
           />

@@ -36,17 +36,40 @@
 }
 
 .playerChip {
-  background-color: var(--green-primary) !important;
-  color: #fff !important;
-  font-weight: bold !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--green-primary);
+  color: #fff;
+  font-weight: bold;
+  font-size: 13px;
+  border-radius: 16px;
+  padding: 3px 4px 3px 6px;
 }
 
-.playerChip .MuiChip-deleteIcon {
-  color: rgba(255, 255, 255, 0.7) !important;
+.playerChipLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.playerChip .MuiChip-deleteIcon:hover {
-  color: #fff !important;
+.playerChipDelete {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 4px;
+  line-height: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.playerChipDelete:hover {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .muiListbox {

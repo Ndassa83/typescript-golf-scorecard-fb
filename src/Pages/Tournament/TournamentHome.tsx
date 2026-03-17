@@ -9,12 +9,21 @@ import {
   getDocs,
   doc,
   updateDoc,
+  deleteDoc,
+  deleteField,
   arrayUnion,
   query,
   where,
 } from "firebase/firestore";
 import { User } from "firebase/auth";
-import { Button } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import dayjs from "dayjs";
 import {
@@ -95,6 +104,11 @@ const TournamentHome = ({
   // Complete state
   const [completing, setCompleting] = useState(false);
 
+  // Abandon state
+  const [showAbandonModal, setShowAbandonModal] = useState(false);
+  const [abandoning, setAbandoning] = useState(false);
+  const [abandonError, setAbandonError] = useState(false);
+
   // Fetch active tournaments for the join dropdown
   useEffect(() => {
     getDocs(query(tournamentCollection, where("status", "==", "active"))).then(
@@ -133,6 +147,39 @@ const TournamentHome = ({
   const handleJoin = () => {
     if (!joinSelected) return;
     setActiveTournament(joinSelected.value);
+  };
+
+  const handleAbandon = async () => {
+    if (!activeTournament) return;
+    setAbandoning(true);
+    setAbandonError(false);
+    try {
+      // Step 1: disassociate all saved rounds
+      const playerDataRef = collection(database, "playerData");
+      const roundsSnap = await getDocs(
+        query(playerDataRef, where("tournamentId", "==", activeTournament.tournamentId))
+      );
+      await Promise.all(
+        roundsSnap.docs.map((d) => updateDoc(d.ref, { tournamentId: deleteField() }))
+      );
+
+      // Step 2: delete tournament document (only after rounds are clean)
+      const tSnap = await getDocs(
+        query(tournamentCollection, where("tournamentId", "==", activeTournament.tournamentId))
+      );
+      if (!tSnap.empty) {
+        await deleteDoc(tSnap.docs[0].ref);
+      }
+
+      // Step 3: clear local state
+      setActiveTournament(null);
+      clearStorage(...TOURNAMENT_KEYS);
+      setShowAbandonModal(false);
+    } catch {
+      setAbandonError(true);
+    } finally {
+      setAbandoning(false);
+    }
   };
 
   const handleComplete = async () => {
@@ -263,8 +310,40 @@ const TournamentHome = ({
                 {completing ? "Completing..." : "Complete Tournament"}
               </Button>
             )}
+            <Button
+              variant="outlined"
+              color="error"
+              disabled={abandoning}
+              onClick={() => { setAbandonError(false); setShowAbandonModal(true); }}
+            >
+              Abandon Tournament
+            </Button>
           </div>
         </div>
+
+        <Dialog open={showAbandonModal} onClose={() => !abandoning && setShowAbandonModal(false)}>
+          <DialogTitle>Abandon Tournament?</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              This will permanently delete <strong>{activeTournament.name}</strong>. Rounds that
+              have already been played will be kept but will no longer be associated with this
+              tournament. This cannot be undone.
+            </DialogContentText>
+            {abandonError && (
+              <DialogContentText color="error" sx={{ mt: 1 }}>
+                Something went wrong. Please try again.
+              </DialogContentText>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowAbandonModal(false)} disabled={abandoning}>
+              Cancel
+            </Button>
+            <Button color="error" variant="contained" disabled={abandoning} onClick={handleAbandon}>
+              {abandoning ? "Abandoning..." : "Abandon"}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }

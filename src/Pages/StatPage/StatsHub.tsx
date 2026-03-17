@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, Tab } from "@mui/material";
 import { Firestore } from "firebase/firestore";
 import { User } from "firebase/auth";
@@ -13,6 +14,7 @@ type Props = {
   database: Firestore;
   currentUser: User | null;
   onSignIn: () => void;
+  onUpdatePlayerAvatar: (userId: number, avatarId: string) => Promise<void>;
 };
 
 type TabValue = "golf" | "darts" | "personal";
@@ -23,11 +25,24 @@ const StatsHub = ({
   database,
   currentUser,
   onSignIn,
+  onUpdatePlayerAvatar,
 }: Props) => {
-  const [activeTab, setActiveTab] = useState<TabValue>("golf");
-  const [visitedTabs, setVisitedTabs] = useState<Set<TabValue>>(
-    new Set(["golf"]),
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as TabValue) ?? "golf";
+  const [activeTab, setActiveTab] = useState<TabValue>(
+    ["golf", "darts", "personal"].includes(initialTab) ? initialTab : "golf"
   );
+  const [visitedTabs, setVisitedTabs] = useState<Set<TabValue>>(
+    new Set([activeTab]),
+  );
+
+  useEffect(() => {
+    const tab = searchParams.get("tab") as TabValue;
+    if (tab && ["golf", "darts", "personal"].includes(tab)) {
+      setActiveTab(tab);
+      setVisitedTabs((prev) => new Set([...prev, tab]));
+    }
+  }, [searchParams]);
 
   const handleTabChange = (_: React.SyntheticEvent, value: TabValue) => {
     setActiveTab(value);
@@ -88,6 +103,7 @@ const StatsHub = ({
             playerOptions={playerOptions}
             currentUser={currentUser}
             onSignIn={onSignIn}
+            onUpdatePlayerAvatar={onUpdatePlayerAvatar}
           />
         )}
       </div>

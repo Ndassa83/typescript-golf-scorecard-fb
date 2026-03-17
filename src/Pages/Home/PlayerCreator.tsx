@@ -8,7 +8,8 @@ import {
   DialogActions,
 } from "@mui/material";
 import SeedRandom from "seed-random";
-import { PlayerOptionType, Course, CourseOptionType } from "../../types";
+import { PlayerOptionType } from "../../types";
+import AvatarPicker from "../../components/Avatar/AvatarPicker";
 import "./Creators.css";
 
 type PlayerCreatorProps = {
@@ -25,20 +26,13 @@ export const PlayerCreator = ({
   setCreatedPlayerName,
   createdPlayerName,
   playerOptions,
-  playerImage,
   setPlayerImage,
 }: PlayerCreatorProps) => {
-  const [isPlayerCreatorOpen, setIsPlayerCreatorOpen] =
-    useState<boolean>(false);
-  const [image, setImage] = useState<string | null>(null);
+  const [isPlayerCreatorOpen, setIsPlayerCreatorOpen] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
 
-  const handleCreatePlayerModal = () => {
-    setIsPlayerCreatorOpen((prev) => !prev);
-  };
-
-  const isPlayerNameTaken = () => {
-    return playerOptions.some((player) => player.label === createdPlayerName);
-  };
+  const isPlayerNameTaken = () =>
+    playerOptions.some((player) => player.label === createdPlayerName);
 
   const handleNewPlayerSubmit = () => {
     if (!createdPlayerName) return;
@@ -46,52 +40,42 @@ export const PlayerCreator = ({
       setCreatedPlayerName("");
       alert("Username is Taken");
     } else {
+      setPlayerImage(selectedAvatar);
       setCreatedPlayerId(SeedRandom(createdPlayerName));
       setIsPlayerCreatorOpen(false);
-      setPlayerImage(image);
+      setSelectedAvatar(null);
     }
   };
 
-  const handleImageChange = (event: any) => {
-    const file = event.target.files[0];
-    if (file) {
-      setImage(file);
-    }
+  const handleClose = () => {
+    setIsPlayerCreatorOpen(false);
+    setSelectedAvatar(null);
   };
 
   return (
     <>
-      <Button onClick={handleCreatePlayerModal}>Create Player</Button>
+      <Button onClick={() => setIsPlayerCreatorOpen(true)}>Create Player</Button>
 
-      <Dialog
-        open={isPlayerCreatorOpen}
-        onClose={handleCreatePlayerModal}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={isPlayerCreatorOpen} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontFamily: "'Fredoka One', cursive" }}>
           Create your player
         </DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
           <TextField
-            id="playerNameInput"
             label="Player Name"
             variant="outlined"
             fullWidth
-            value={createdPlayerName}
+            value={createdPlayerName ?? ""}
             onChange={(e) => setCreatedPlayerName(e.target.value)}
           />
-          <Button variant="contained" component="label">
-            Upload File
-            <input type="file" hidden onChange={handleImageChange} />
-          </Button>
+          <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 15 }}>
+            Pick an avatar
+          </div>
+          <AvatarPicker selected={selectedAvatar} onSelect={setSelectedAvatar} />
         </DialogContent>
         <DialogActions sx={{ gap: 1, px: 3, pb: 2 }}>
-          <Button onClick={handleCreatePlayerModal}>Close</Button>
-          <Button
-            disabled={!createdPlayerName}
-            onClick={handleNewPlayerSubmit}
-          >
+          <Button onClick={handleClose}>Close</Button>
+          <Button disabled={!createdPlayerName} onClick={handleNewPlayerSubmit}>
             Submit
           </Button>
         </DialogActions>

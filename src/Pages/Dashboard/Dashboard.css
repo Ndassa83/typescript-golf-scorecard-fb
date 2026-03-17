@@ -12,6 +12,31 @@
   text-align: left;
 }
 
+.dashboardProfileCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 2px solid var(--green-primary);
+  border-radius: 14px;
+  background: var(--bg-cream);
+  box-shadow: 2px 2px 0 var(--text-dark);
+  margin-bottom: 24px;
+  width: fit-content;
+}
+
+.dashboardProfileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dashboardProfileName {
+  font-family: 'Fredoka One', cursive;
+  font-size: 20px;
+  color: var(--text-dark);
+}
+
 .dashboardCols {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -415,3 +440,16 @@
     margin-bottom: 16px;
   }
 }
+
+.rivalryRecord {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.rivalryW { color: #1a8a2e; }
+.rivalryL { color: var(--red-accent, #c0392b); }
+.rivalryT { color: #888; }
