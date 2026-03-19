@@ -22,7 +22,8 @@ const DartStatPage = ({ playerOptions }: DartStatPageProps) => {
   const [allScoreData, setAllScoreData] = useState<DartRound[]>([]);
   const [filteredAllScoreData, setFilteredAllScoreData] = useState<DartRound[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<FetchedPlayer | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const database = getFirestore();
   const dartRoundsCollectionRef = collection(database, "dartRounds");
@@ -34,16 +35,13 @@ const DartStatPage = ({ playerOptions }: DartStatPageProps) => {
     setSelectedPlayer(newValue?.value || null);
   };
 
-  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedDate(event.target.value);
-  };
-
   const handleClearFilters = () => {
     setSelectedPlayer(null);
-    setSelectedDate(null);
+    setDateFrom("");
+    setDateTo("");
   };
 
-  const hasActiveFilters = !!(selectedPlayer || selectedDate);
+  const hasActiveFilters = !!(selectedPlayer || dateFrom || dateTo);
 
   const summaryStats = useMemo(() => {
     if (allScoreData.length === 0) return null;
@@ -90,15 +88,15 @@ const DartStatPage = ({ playerOptions }: DartStatPageProps) => {
 
   useEffect(() => {
     const filtered = allScoreData.filter((round: DartRound) => {
+      const roundDate = dayjs(round.date);
       return (
         (selectedPlayer ? round.userId === selectedPlayer.userId : true) &&
-        (selectedDate
-          ? dayjs(selectedDate).isSame(dayjs(round.date), "day")
-          : true)
+        (dateFrom ? !roundDate.isBefore(dayjs(dateFrom), "day") : true) &&
+        (dateTo ? !roundDate.isAfter(dayjs(dateTo), "day") : true)
       );
     });
     setFilteredAllScoreData(filtered);
-  }, [selectedPlayer, selectedDate, allScoreData]);
+  }, [selectedPlayer, dateFrom, dateTo, allScoreData]);
 
   return (
     <div className="page-container">
@@ -144,25 +142,24 @@ const DartStatPage = ({ playerOptions }: DartStatPageProps) => {
       <div className="statFilterSection">
         <DartStatFilter
           playerOptions={playerOptions}
-          selectedDate={selectedDate}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
           hasActiveFilters={hasActiveFilters}
           handleSelectedPlayerChange={handleSelectedPlayerChange}
-          handleDateChange={handleDateChange}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
           onClearFilters={handleClearFilters}
         />
       </div>
 
       {/* Player stats */}
       <div className="statStatsSection">
-        {!hasActiveFilters ? (
-          <div className="statEmptyMsg">Select a player above to view their stats.</div>
-        ) : (
-          <DartOverallStats
-            filteredAllScoreData={filteredAllScoreData}
-            allScoreData={allScoreData}
-            selectedPlayer={selectedPlayer}
-          />
-        )}
+        <DartOverallStats
+          filteredAllScoreData={hasActiveFilters ? filteredAllScoreData : allScoreData}
+          allScoreData={allScoreData}
+          selectedPlayer={selectedPlayer}
+          combinedMode={!hasActiveFilters}
+        />
       </div>
     </div>
   );

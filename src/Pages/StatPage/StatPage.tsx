@@ -21,6 +21,8 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import StatFilter from "./StatFilter";
 import OverallStats from "./OverallStats";
 import GolfLeaderboards from "./GolfLeaderboards";
+import HoleBreakdown from "./HoleBreakdown";
+import ScoreTrendChart from "../../components/ScoreTrendChart";
 import { GolfRoundModal } from "../Dashboard/GolfRoundModal";
 import { BackyardGolfLogo } from "../../components/BackyardGolfLogo";
 import { ScoreCardTable } from "../ScoreCard/ScoreCardTable";
@@ -406,21 +408,34 @@ const StatPage = ({ playerOptions, courseOptions }: StatPageProps) => {
             No rounds match the current filters.
           </div>
         ) : (
-          filteredAllScoreData.map((courseScores, i) => (
-            <React.Fragment
-              key={`${courseScores[0].currentCourse.courseId}-${i}`}
-            >
-              <div className="courseName">
-                {courseScores[0].currentCourse.courseName}
-              </div>
-              <OverallStats courseScores={courseScores} />
-              <ScoreCardTable
-                courseSelected={courseScores[0].currentCourse}
-                playerRounds={courseScores}
-                showDate
+          <>
+            {selectedPlayer && (
+              <ScoreTrendChart
+                rounds={allScoreData}
+                playerId={selectedPlayer.userId}
+                label={`${selectedPlayer.userName} · Score trend (5-round avg)`}
               />
-            </React.Fragment>
-          ))
+            )}
+            {filteredAllScoreData.map((courseScores, i) => (
+              <React.Fragment
+                key={`${courseScores[0].currentCourse.courseId}-${i}`}
+              >
+                <div className="courseName">
+                  {courseScores[0].currentCourse.courseName}
+                </div>
+                <HoleBreakdown
+                  allRounds={allScoreData}
+                  course={courseScores[0].currentCourse}
+                />
+                <OverallStats courseScores={courseScores} />
+                <ScoreCardTable
+                  courseSelected={courseScores[0].currentCourse}
+                  playerRounds={courseScores}
+                  showDate
+                />
+              </React.Fragment>
+            ))}
+          </>
         )}
       </div>
 

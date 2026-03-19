@@ -1,7 +1,6 @@
 import { GolfRound, Course, Hole, PlayerOptionType } from "../../types";
 import dayjs from "dayjs";
 import { useMediaQuery } from "@mui/material";
-import AvatarIcon from "../../components/Avatar/AvatarIcon";
 import "./ScoreCardTable.css";
 
 type ScoreCardProps = {
@@ -49,32 +48,16 @@ export const ScoreCardTable = ({
       <div className="cell cellTitles">Par</div>
       <div className="cell cellTitles">Handicap</div>
       {playerRounds.map((player) => {
-        const playedCount = player.scores.length;
-        const stpVal = player.scores.reduce(
-          (acc, score, i) => acc + score - (holes[i]?.par ?? 0),
-          0
-        );
-        const avatarId = playerOptions?.find(
-          (o) => o.value.userId === player.userId
-        )?.value.avatar;
         return (
           <div key={player.name} className="cell cellTitles scores playerDateDiv">
-            <div className="playerLabelRow">
-              <AvatarIcon avatarId={avatarId} size={18} initials={player.name} />
-              <span>
-                {player.name.length > 7
-                  ? player.name.substring(0, 7) + "…"
-                  : player.name}
-              </span>
-            </div>
+            <span className="playerNameLabel" title={player.name}>
+              {player.name.length > 7
+                ? player.name.substring(0, 7) + "…"
+                : player.name}
+            </span>
             <div className="dateOfRound">
               {showDate ? dayjs(player.date).format("M/D/YY") : ""}
             </div>
-            {playedCount > 0 && (
-              <div className={`stpLabel ${stpClass(stpVal)}`}>
-                {formatStp(stpVal)}
-              </div>
-            )}
           </div>
         );
       })}

@@ -11,7 +11,7 @@ const AvatarIcon = ({ avatarId, size = 40, initials }: Props) => {
         style={{
           width: size,
           height: size,
-          borderRadius: "50%",
+          borderRadius: "8px",
           backgroundColor: "var(--green-primary)",
           display: "flex",
           alignItems: "center",
@@ -32,7 +32,7 @@ const AvatarIcon = ({ avatarId, size = 40, initials }: Props) => {
       style={{
         width: size,
         height: size,
-        borderRadius: "50%",
+        borderRadius: "8px",
         overflow: "hidden",
         flexShrink: 0,
         display: "flex",
@@ -43,7 +43,7 @@ const AvatarIcon = ({ avatarId, size = 40, initials }: Props) => {
       <img
         src={`${process.env.PUBLIC_URL}/avatars/${avatarId}.png`}
         alt={avatarId}
-        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center -1px" }}
       />
     </div>
   );

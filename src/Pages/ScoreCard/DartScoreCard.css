@@ -1,27 +1,264 @@
-.subtotalRow {
-  background-color: var(--yellow-accent);
-  font-weight: bold;
+/* ── Set navigation row ──────────────────────────────────────────── */
+.setNavRow {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
 }
 
-.setTotalContainers {
+.setNavArrow {
+  color: var(--text-dark) !important;
+  opacity: 0.6;
+  flex-shrink: 0;
+  height: auto !important;
+  border-radius: 10px !important;
+  padding: 0 10px !important;
+  align-self: stretch;
+}
+
+.setNavArrow:hover {
+  opacity: 1;
+}
+
+.setNavSpacer {
+  width: 48px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ── Set slide animations ─────────────────────────────────────────── */
+@keyframes slideInFromLeft {
+  from { transform: translateX(-48px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+@keyframes slideInFromRight {
+  from { transform: translateX(48px);  opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+.setNavSlideBack {
+  animation: slideInFromLeft 0.22s ease-out;
+}
+
+.setNavSlideForward {
+  animation: slideInFromRight 0.22s ease-out;
+}
+
+/* ── Set card layout ─────────────────────────────────────────────── */
+.setCardsWrapper {
   display: flex;
-  overflow-x: auto;
-  font-size: 12px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0 8px;
+  box-sizing: border-box;
+}
+
+.setCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background-color: var(--green-primary);
   border-radius: 12px;
   border: 3px solid var(--text-dark);
-  margin: 20px;
+  box-shadow: 3px 3px 0 var(--text-dark);
+  overflow: hidden;
 }
 
-.setTotals {
-  padding: 1rem;
+.setCardActive {
+  border-color: var(--yellow-accent);
+  box-shadow: 3px 3px 0 var(--yellow-accent);
+}
+
+.setCardHeader {
+  color: white;
+  font-weight: bold;
+  font-family: 'Fredoka One', cursive;
+  font-size: 14px;
+  padding: 4px 12px;
+  width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.setCardTable {
+  display: flex;
+}
+
+.setWinnerStrip {
+  background-color: var(--yellow-accent);
+  font-weight: bold;
+  font-size: 12px;
+  padding: 4px 8px;
+  width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+  color: var(--text-dark);
+  display: flex;
+  gap: 4px;
   justify-content: center;
+  align-items: center;
+}
+
+.setWinnerRecord {
+  font-weight: normal;
+  font-size: 11px;
+}
+
+/* ── Set card scoped overrides ───────────────────────────────────── */
+
+/* Fix: .titles has height:20px in ScoreCardTable.css which clips cells
+   inside .setCard { overflow: hidden }. Must be auto here. */
+.setCardTable .titles {
+  height: auto;
+}
+
+/* Force GPU compositing so overflow:hidden correctly clips child backgrounds
+   at the border-radius on all browsers (fixes WebKit/Safari corner bleed). */
+.setCard {
+  transform: translateZ(0);
+}
+
+/* Top-right corner: give the Total header cell the inner border-radius so its
+   background follows the card's curve (border-radius 12px minus border 3px = 9px). */
+.setCard .setCardTable > .cellInfo:last-child > .cell:first-child {
+  border-top-right-radius: 9px;
+}
+
+/* Bottom corners: suppress inner radii — overflow:hidden handles rounding,
+   and inner radii caused green gaps before the winner strip. */
+.setCard .cellTitles:last-child {
+  border-bottom-left-radius: 0 !important;
+}
+
+.setCard .totals:last-child {
+  border-bottom-right-radius: 0 !important;
+}
+
+/* ── Match score header ───────────────────────────────────────────── */
+.matchScoreHeader {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  background-color: var(--green-primary);
+  border-radius: 12px;
+  border: 3px solid var(--text-dark);
+  box-shadow: 3px 3px 0 var(--text-dark);
+  padding: 8px 20px;
   color: white;
 }
 
+.matchScoreEntry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.matchScoreSep {
+  font-size: 22px;
+  font-weight: bold;
+  font-family: 'Fredoka One', cursive;
+  align-self: center;
+}
+
+.matchScoreWins {
+  font-size: 32px;
+  font-weight: bold;
+  font-family: 'Fredoka One', cursive;
+  line-height: 1;
+}
+
+.matchScoreName {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
 @media (max-width: 768px) {
-  .setTotalContainers {
-    margin: 10px;
-    font-size: 11px;
+  .setCardsWrapper {
+    flex-direction: column;
+    align-items: center;
   }
+}
+
+/* ── Score indicator circles (100 = outline, 50 = filled) ───────────── */
+.scoreCircles {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.scoreCircle100 {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-dark);
+  background: transparent;
+  display: block;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.scoreCircle50 {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-dark);
+  display: block;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .scoreCircle100,
+  .scoreCircle50 {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+/* ── Editable score cell ─────────────────────────────────────────── */
+.editableCell {
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+
+.editableCell:hover {
+  background-color: rgba(255, 220, 50, 0.25) !important;
+}
+
+/* ── Edit score dialog ───────────────────────────────────────────── */
+.editScoreDialog {
+  border-radius: 14px !important;
+  border: 3px solid var(--text-dark) !important;
+  box-shadow: 4px 4px 0 var(--text-dark) !important;
+}
+
+.editScoreTitle {
+  font-family: 'Fredoka One', cursive !important;
+  font-size: 1.1rem !important;
+  padding-bottom: 4px !important;
+}
+
+.editScoreContent {
+  padding-top: 8px !important;
+}
+
+.editScoreActions {
+  padding: 12px 16px !important;
+  gap: 8px;
+}
+
+.editScoreActions .tossActionBtn {
+  flex: 1;
 }

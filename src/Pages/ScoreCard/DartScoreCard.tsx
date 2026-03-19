@@ -35,28 +35,33 @@ const DartScoreCard = ({
   );
   const [tieBreaker, setTieBreaker] = useState<boolean>(false);
   const [winningPlayer, setWinningPlayer] = useState<DartRound | null>(null);
+  const [tiebreakerWinners, setTiebreakerWinners] = useState<Record<number, number>>(
+    () => loadFromStorage<Record<number, number>>(STORAGE_KEYS.DARTS_TIEBREAKER_WINNERS) ?? {}
+  );
 
   useEffect(() => { saveToStorage(STORAGE_KEYS.DARTS_CUR_PLAYER_GAMES, curPlayerGames); }, [curPlayerGames]);
   useEffect(() => { saveToStorage(STORAGE_KEYS.DARTS_CURRENT_TOSS, currentToss); }, [currentToss]);
   useEffect(() => { saveToStorage(STORAGE_KEYS.DARTS_GAME_LENGTH, gameLength); }, [gameLength]);
+  useEffect(() => { saveToStorage(STORAGE_KEYS.DARTS_TIEBREAKER_WINNERS, tiebreakerWinners); }, [tiebreakerWinners]);
 
-  const checkIfWinner = () => {
+  const checkIfWinner = (games?: DartRound[]) => {
+    const data = games ?? curPlayerGames;
     //Full Match Logic
     if (curGameType === "Full Match") {
-      const winner = curPlayerGames.find((p) => p.gameWins === 2) ?? null;
+      const winner = data.find((p) => p.gameWins === 2) ?? null;
       if (winner) {
         const updated = { ...winner, matchWinner: true };
         setCurPlayerGames((prev) =>
           prev.map((p) => (p.userId === winner.userId ? updated : p))
         );
         setWinningPlayer(updated);
-      } else if (curPlayerGames.every((p) => p.gameWins !== 2)) {
+      } else if (data.every((p) => p.gameWins !== 2)) {
         setGameLength((prev) => prev + 3);
       }
     }
     //One Set Logic
     if (curGameType === "One Set") {
-      const winner = curPlayerGames.find((p) => p.gameWins === 1) ?? null;
+      const winner = data.find((p) => p.gameWins === 1) ?? null;
       if (winner) {
         const updated = { ...winner, matchWinner: true };
         setCurPlayerGames((prev) =>
@@ -97,42 +102,6 @@ const DartScoreCard = ({
   return (
     <div className="scoreCardContainer">
       <GarageDartsLogo className="gameLogo" />
-      <div className="courseName">{curGameType}</div>
-
-      <GameResults
-        curPlayerGames={curPlayerGames}
-        curGameType={curGameType}
-        currentToss={currentToss}
-      />
-
-      <div className="scoreCardScrollWrapper">
-        <DartScoreCardTable
-          curPlayerGames={curPlayerGames}
-          curGameType={curGameType}
-          currentToss={currentToss}
-          setCurrentToss={setCurrentToss}
-          gameLength={gameLength}
-          setGameLength={setGameLength}
-          tieBreaker={tieBreaker}
-          setTieBreaker={setTieBreaker}
-          setCurPlayerGames={setCurPlayerGames}
-          dartRoundCollection={dartRoundCollection}
-          checkIfWinner={checkIfWinner}
-          setWinningPlayer={setWinningPlayer}
-          winningPlayer={winningPlayer}
-          currentUserEmail={currentUserEmail}
-          playerOptions={playerOptions}
-        />
-      </div>
-
-      {tieBreaker && (
-        <TieBreaker
-          curPlayerGames={curPlayerGames}
-          setCurPlayerGames={setCurPlayerGames}
-          onClose={() => setTieBreaker(false)}
-          checkIfWinner={checkIfWinner}
-        />
-      )}
 
       <TossInput
         curPlayerGames={curPlayerGames}
@@ -142,6 +111,45 @@ const DartScoreCard = ({
         gameLength={gameLength}
         setGameLength={setGameLength}
       />
+
+      <GameResults
+        curPlayerGames={curPlayerGames}
+        curGameType={curGameType}
+        currentToss={currentToss}
+      />
+
+      <DartScoreCardTable
+        curPlayerGames={curPlayerGames}
+        curGameType={curGameType}
+        currentToss={currentToss}
+        setCurrentToss={setCurrentToss}
+        gameLength={gameLength}
+        setGameLength={setGameLength}
+        tieBreaker={tieBreaker}
+        setTieBreaker={setTieBreaker}
+        setCurPlayerGames={setCurPlayerGames}
+        dartRoundCollection={dartRoundCollection}
+        checkIfWinner={checkIfWinner}
+        setWinningPlayer={setWinningPlayer}
+        winningPlayer={winningPlayer}
+        currentUserEmail={currentUserEmail}
+        playerOptions={playerOptions}
+        tiebreakerWinners={tiebreakerWinners}
+        setTiebreakerWinners={setTiebreakerWinners}
+      />
+
+      {tieBreaker && (
+        <TieBreaker
+          curPlayerGames={curPlayerGames}
+          setCurPlayerGames={setCurPlayerGames}
+          onClose={() => setTieBreaker(false)}
+          checkIfWinner={checkIfWinner}
+          tiebreakerSetIdx={Math.floor(currentToss / 3) - 1}
+          onTiebreakerWin={(setIdx, playerIdx) =>
+            setTiebreakerWinners((prev) => ({ ...prev, [setIdx]: playerIdx }))
+          }
+        />
+      )}
 
       <Button color="error" onClick={() => setAbandonDialogOpen(true)}>
         Abandon Match

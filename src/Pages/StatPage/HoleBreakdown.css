@@ -1,0 +1,65 @@
+.holeBreakdown {
+  margin: 8px 0 12px;
+}
+
+.holeBreakdownLabel {
+  font-size: 11px;
+  color: var(--text-muted, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.holeBreakdownScroll {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  justify-content: center;
+}
+
+.hbCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 32px;
+  padding: 4px 2px;
+  border-radius: 5px;
+  background: var(--card-bg, #f0ebe0);
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .hbCell {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.hbHoleNum {
+  font-size: 8px;
+  color: var(--text-muted, #999);
+  font-weight: 600;
+}
+
+.hbPar {
+  font-size: 8px;
+  color: var(--text-muted, #aaa);
+}
+
+.hbAvg {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Color classes */
+.hbEagle  { color: #9b59b6; }
+.hbBirdie { color: #2ecc71; }
+.hbPar    { color: var(--text-dark, #2d1b00); }
+.hbBogey  { color: #e67e22; }
+.hbDouble { color: #e84040; }
+.hbNeutral { color: var(--text-dark, #2d1b00); }
+
+[data-theme="dark"] .hbPar,
+[data-theme="dark"] .hbNeutral {
+  color: var(--text-dark, #e2d9c8);
+}

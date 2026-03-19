@@ -7,6 +7,8 @@ a {
 }
 
 .background {
+  width: 100%;
+  min-height: 100vh;
   background-color: var(--bg-cream);
 }
 
@@ -126,7 +128,7 @@ a {
 .navAvatar {
   width: 34px;
   height: 34px;
-  border-radius: 50%;
+  border-radius: 8px;
   border: 2px solid white;
   background-color: var(--green-primary);
   cursor: pointer;

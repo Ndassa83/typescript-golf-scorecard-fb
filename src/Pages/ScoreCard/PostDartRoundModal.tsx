@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DartRound } from "../../types";
-import { Button, Modal } from "@mui/material";
+import { Alert, Button, Modal } from "@mui/material";
 import "./PostDartRound.css";
 import { CollectionReference } from "firebase/firestore";
 import { addDoc } from "firebase/firestore";
@@ -26,7 +26,7 @@ function buildDartShareText(players: DartRound[], gameType: string): string {
   const sorted = [...players].sort((a, b) => b.gameWins - a.gameWins);
   const rows = sorted.map((p) => {
     const result = p.matchWinner ? " — Winner" : "";
-    return `${p.name}: ${p.gameWins} game win${p.gameWins !== 1 ? "s" : ""}${result}`;
+    return `${p.name}: ${p.gameWins} set win${p.gameWins !== 1 ? "s" : ""}${result}`;
   });
   return [header, ...rows].join("\n");
 }
@@ -45,12 +45,21 @@ export const PostDartRoundModal = ({
 }: PostDartRoundModalProps) => {
   const [gameUploaded, setGameUploaded] = useState<boolean>(false);
   const [copied, setCopied] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
 
-  const handlePostRound = () => {
-    curPlayerGames.forEach((game) => {
-      addDoc(dartRoundCollection, game);
-    });
-    setGameUploaded(true);
+  const handlePostRound = async () => {
+    setPosting(true);
+    setPostError(null);
+    try {
+      await Promise.all(curPlayerGames.map((game) => addDoc(dartRoundCollection, game)));
+      setGameUploaded(true);
+    } catch (err) {
+      console.error("Failed to save dart round:", err);
+      setPostError("Failed to save round. Please try again.");
+    } finally {
+      setPosting(false);
+    }
   };
 
   const restartMatch = () => {
@@ -110,7 +119,7 @@ export const PostDartRoundModal = ({
                     <span className="dartPlayerName">{p.name}</span>
                     {curGameType !== "Solo" && (
                       <span className="dartPlayerWins">
-                        {p.gameWins} win{p.gameWins !== 1 ? "s" : ""}
+                        {p.gameWins} set win{p.gameWins !== 1 ? "s" : ""}
                       </span>
                     )}
                     {p.matchWinner && (
@@ -121,9 +130,16 @@ export const PostDartRoundModal = ({
             </div>
 
             {!gameUploaded ? (
-              <Button variant="contained" fullWidth onClick={handlePostRound}>
-                Post Round
-              </Button>
+              <>
+                <Button variant="contained" fullWidth onClick={handlePostRound} disabled={posting}>
+                  {posting ? "Saving..." : "Post Round"}
+                </Button>
+                {postError && (
+                  <Alert severity="error" sx={{ mt: 1 }} onClose={() => setPostError(null)}>
+                    {postError}
+                  </Alert>
+                )}
+              </>
             ) : (
               <div className="dartShareButtons">
                 <Button variant="outlined" size="small" onClick={handleCopy}>
