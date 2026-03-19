@@ -4,19 +4,23 @@ import "./StatFilter.css";
 
 type DartStatFilterProps = {
   playerOptions: PlayerOptionType[];
-  selectedDate: string | null;
+  dateFrom: string;
+  dateTo: string;
   hasActiveFilters: boolean;
   handleSelectedPlayerChange: any;
-  handleDateChange: any;
+  onDateFromChange: (val: string) => void;
+  onDateToChange: (val: string) => void;
   onClearFilters: () => void;
 };
 
 const DartStatFilter = ({
   playerOptions,
-  selectedDate,
+  dateFrom,
+  dateTo,
   hasActiveFilters,
   handleSelectedPlayerChange,
-  handleDateChange,
+  onDateFromChange,
+  onDateToChange,
   onClearFilters,
 }: DartStatFilterProps) => {
   return (
@@ -28,16 +32,24 @@ const DartStatFilter = ({
         renderInput={(params) => <TextField {...params} label="Players" />}
         onChange={handleSelectedPlayerChange}
         size="small"
-        ListboxProps={{ className: "muiListbox" }}
+        slotProps={{ listbox: { className: "muiListbox" } }}
       />
 
-      <TextField
-        size="small"
-        type="date"
-        value={selectedDate}
-        onChange={handleDateChange}
-        className="textField"
-      />
+      <div className="dateRangeRow">
+        <input
+          type="date"
+          className="dateInput"
+          value={dateFrom}
+          onChange={(e) => onDateFromChange(e.target.value)}
+        />
+        <span className="dateRangeSep">—</span>
+        <input
+          type="date"
+          className="dateInput"
+          value={dateTo}
+          onChange={(e) => onDateToChange(e.target.value)}
+        />
+      </div>
 
       {hasActiveFilters && (
         <button className="clearFiltersBtn" onClick={onClearFilters}>

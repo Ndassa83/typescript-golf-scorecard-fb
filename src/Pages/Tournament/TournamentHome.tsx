@@ -36,6 +36,7 @@ import {
 } from "../../types";
 import { clearStorage, TOURNAMENT_KEYS } from "../../utils/localStorage";
 import { BackyardTourneyLogo } from "../../components/BackyardTourneyLogo";
+import AvatarIcon from "../../components/Avatar/AvatarIcon";
 import "./Tournament.css";
 
 type TournamentHomeProps = {
@@ -79,6 +80,19 @@ function buildStandings(
   return Object.values(map).sort((a, b) => a.scoreToPar - b.scoreToPar);
 }
 
+function formatStp(n: number): string {
+  if (n === 0) return "E";
+  return n > 0 ? `+${n}` : `${n}`;
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 const TournamentHome = ({
   activeTournament,
   setActiveTournament,
@@ -101,6 +115,12 @@ const TournamentHome = ({
   const [activeTournaments, setActiveTournaments] = useState<Tournament[]>([]);
   const [joinSelected, setJoinSelected] = useState<{ label: string; value: Tournament } | null>(null);
 
+  // Completed tournaments for history
+  const [completedTournaments, setCompletedTournaments] = useState<Tournament[]>([]);
+
+  // Live leaderboard for active tournament
+  const [liveStandings, setLiveStandings] = useState<TournamentStandingRow[]>([]);
+
   // Complete state
   const [completing, setCompleting] = useState(false);
 
@@ -109,14 +129,37 @@ const TournamentHome = ({
   const [abandoning, setAbandoning] = useState(false);
   const [abandonError, setAbandonError] = useState(false);
 
-  // Fetch active tournaments for the join dropdown
+  // Fetch active + completed tournaments
   useEffect(() => {
     getDocs(query(tournamentCollection, where("status", "==", "active"))).then(
       (snap) => {
         setActiveTournaments(snap.docs.map((d) => d.data() as Tournament));
       }
     );
+    getDocs(query(tournamentCollection, where("status", "==", "completed"))).then(
+      (snap) => {
+        const sorted = snap.docs
+          .map((d) => d.data() as Tournament)
+          .sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? ""));
+        setCompletedTournaments(sorted);
+      }
+    );
   }, []);
+
+  // Fetch live standings for active tournament
+  useEffect(() => {
+    if (!activeTournament) {
+      setLiveStandings([]);
+      return;
+    }
+    const playerDataRef = collection(database, "playerData");
+    getDocs(
+      query(playerDataRef, where("tournamentId", "==", activeTournament.tournamentId))
+    ).then((snap) => {
+      const rounds = snap.docs.map((d) => d.data() as GolfRound);
+      setLiveStandings(buildStandings(rounds, activeTournament.participantIds, playerOptions));
+    });
+  }, [activeTournament?.tournamentId, playerOptions.length]);
 
   const handleCreate = async () => {
     if (!name.trim() || selectedParticipants.length === 0) return;
@@ -246,60 +289,115 @@ const TournamentHome = ({
       ? activeTournament.roundCount >= activeTournament.targetRounds
       : false;
 
+  const progressPct = activeTournament
+    ? Math.min(100, (activeTournament.roundCount / activeTournament.targetRounds) * 100)
+    : 0;
+
   if (activeTournament) {
     return (
       <div className="tournamentPage">
         <BackyardTourneyLogo className="gameLogo" />
 
-        <div className="tournamentPanel">
-          <h2 className="tournamentSubHeading">{activeTournament.name}</h2>
-          <div className="tournamentInfoGrid">
-            <span className="tournamentInfoLabel">Status</span>
-            <span>
-              <span className={`tournamentStatusBadge ${activeTournament.status}`}>
-                {activeTournament.status}
-              </span>
-            </span>
-            <span className="tournamentInfoLabel">Rounds</span>
-            <span className="tournamentInfoValue">
-              {activeTournament.roundCount} of {activeTournament.targetRounds}
-            </span>
-            {activeTournament.lockedCourseName && (
-              <>
-                <span className="tournamentInfoLabel">Course</span>
-                <span className="tournamentInfoValue">
-                  {activeTournament.lockedCourseName} (locked)
-                </span>
-              </>
-            )}
-            <span className="tournamentInfoLabel">Players</span>
-            <span className="tournamentInfoValue">
-              {activeTournament.participantIds
-                .map(
-                  (id) =>
-                    playerOptions.find((p) => p.value.userId === id)?.value
-                      .userName ?? id
-                )
-                .join(", ")}
-            </span>
+        <div className="tournamentPanel tournamentActivePanel">
+          <h2 className="tournamentActiveName">{activeTournament.name}</h2>
+
+          {/* Participant avatars */}
+          <div className="tournamentAvatarRow">
+            {activeTournament.participantIds.map((id) => {
+              const player = playerOptions.find((p) => p.value.userId === id)?.value;
+              return (
+                <div key={id} className="tournamentAvatarItem">
+                  <AvatarIcon
+                    avatarId={player?.avatar}
+                    size={44}
+                    initials={player?.userName ?? String(id)}
+                  />
+                  <span className="tournamentAvatarName">{player?.userName ?? id}</span>
+                </div>
+              );
+            })}
           </div>
+
+          {/* Round progress bar */}
+          <div className="tournamentProgressSection">
+            <div className="tournamentProgressLabel">
+              <span>Rounds</span>
+              <span className="tournamentProgressCount">
+                {activeTournament.roundCount} / {activeTournament.targetRounds}
+              </span>
+            </div>
+            <div className="tournamentProgressBar">
+              <div
+                className="tournamentProgressFill"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+
+          {activeTournament.lockedCourseName && (
+            <div className="tournamentLockedCourseChip">
+              📍 {activeTournament.lockedCourseName} (locked)
+            </div>
+          )}
+
+          {/* Live leaderboard */}
+          {liveStandings.length > 0 && (
+            <div className="tournamentLiveLeaderboard">
+              <div className="tournamentLiveLeaderboardTitle">Live Standings</div>
+              <table className="tournamentLiveTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Player</th>
+                    <th>Rds</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {liveStandings.map((row, i) => (
+                    <tr key={row.userId} className={i === 0 && row.rounds > 0 ? "liveLeader" : ""}>
+                      <td>
+                        {i === 0 && row.rounds > 0
+                          ? <EmojiEventsIcon fontSize="inherit" sx={{ color: "#d4af37", verticalAlign: "middle" }} />
+                          : i + 1}
+                      </td>
+                      <td>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <AvatarIcon
+                            avatarId={playerOptions.find((p) => p.value.userId === row.userId)?.value.avatar}
+                            size={22}
+                            initials={row.name}
+                          />
+                          {row.name}
+                        </div>
+                      </td>
+                      <td>{row.rounds}</td>
+                      <td>{row.rounds === 0 ? "—" : formatStp(row.scoreToPar)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <div className="tournamentActionRow">
             <Button
               variant="contained"
-              component={Link}
-              to={`/Tournament/Standings/${activeTournament.tournamentId}`}
+              size="large"
+              disabled={roundsComplete}
+              onClick={() => navigate("/Golf")}
+              className="tournamentStartRoundBtn"
             >
-              View Standings
+              {roundsComplete ? "All Rounds Complete" : "⛳ Start Next Round"}
             </Button>
             <Button
               variant="outlined"
-              disabled={roundsComplete}
-              onClick={() => navigate("/Golf")}
+              component={Link}
+              to={`/Tournament/Standings/${activeTournament.tournamentId}`}
             >
-              {roundsComplete ? "All Rounds Complete" : "Start Next Round"}
+              More Details
             </Button>
-            {isCreator && (
+            {isCreator && activeTournament.roundCount > 0 && (
               <Button
                 variant={roundsComplete ? "contained" : "outlined"}
                 color="success"
@@ -310,16 +408,16 @@ const TournamentHome = ({
                 {completing ? "Completing..." : "Complete Tournament"}
               </Button>
             )}
-            <Button
-              variant="outlined"
-              color="error"
-              disabled={abandoning}
-              onClick={() => { setAbandonError(false); setShowAbandonModal(true); }}
-            >
-              Abandon Tournament
-            </Button>
           </div>
         </div>
+
+        <button
+          className="tournamentAbandonLink"
+          disabled={abandoning}
+          onClick={() => { setAbandonError(false); setShowAbandonModal(true); }}
+        >
+          {abandoning ? "Abandoning..." : "Abandon tournament"}
+        </button>
 
         <Dialog open={showAbandonModal} onClose={() => !abandoning && setShowAbandonModal(false)}>
           <DialogTitle>Abandon Tournament?</DialogTitle>
@@ -350,7 +448,7 @@ const TournamentHome = ({
 
   return (
     <div className="tournamentPage">
-      <h1 className="tournamentHeading">Tournament</h1>
+      <BackyardTourneyLogo className="gameLogo" />
 
       {/* Create new */}
       <div className="tournamentPanel">
@@ -382,8 +480,9 @@ const TournamentHome = ({
               className="tournamentNumberInput"
               type="number"
               min={1}
+              max={4}
               value={targetRounds}
-              onChange={(e) => setTargetRounds(Math.max(1, Number(e.target.value)))}
+              onChange={(e) => setTargetRounds(Math.min(4, Math.max(1, Number(e.target.value))))}
             />
           </div>
           <div>
@@ -425,6 +524,48 @@ const TournamentHome = ({
           >
             Join
           </Button>
+        </div>
+      )}
+
+      {/* Past tournaments history */}
+      {completedTournaments.length > 0 && (
+        <div className="tournamentHistorySection">
+          <h2 className="tournamentSubHeading">Past Tournaments</h2>
+          <div className="tournamentHistoryList">
+            {completedTournaments.map((t) => (
+              <Link
+                key={t.tournamentId}
+                to={`/Tournament/Standings/${t.tournamentId}`}
+                className="tournamentHistoryCard"
+              >
+                <div className="tournamentHistoryCardTop">
+                  <div className="tournamentHistoryCardMeta">
+                    <span className="tournamentHistoryCardName">{t.name}</span>
+                    <span className="tournamentHistoryCardDate">
+                      {t.completedAt ? formatDate(t.completedAt) : ""} · {t.roundCount} round{t.roundCount !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className="tournamentHistoryCardWinner">
+                    <EmojiEventsIcon sx={{ color: "#d4af37", fontSize: 20 }} />
+                    <span>{t.winnerName}</span>
+                  </div>
+                </div>
+                <div className="tournamentHistoryCardAvatars">
+                  {t.participantIds.map((id) => {
+                    const player = playerOptions.find((p) => p.value.userId === id)?.value;
+                    return (
+                      <AvatarIcon
+                        key={id}
+                        avatarId={player?.avatar}
+                        size={28}
+                        initials={player?.userName ?? String(id)}
+                      />
+                    );
+                  })}
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

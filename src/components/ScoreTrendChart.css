@@ -1,0 +1,69 @@
+.scoreTrendChart {
+  margin: 12px 0 4px;
+}
+
+.scoreTrendLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted, #888);
+  margin-bottom: 4px;
+}
+
+.scoreTrendSvg {
+  width: 100%;
+  max-width: 540px;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.trendGridLine {
+  stroke: var(--border-color, #ddd);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  opacity: 0.5;
+}
+
+[data-theme="dark"] .trendGridLine {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+.trendParLine {
+  stroke: var(--green-primary, #4a7c3f);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 3;
+  opacity: 0.7;
+}
+
+.trendLine {
+  stroke: var(--green-primary, #4a7c3f);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.trendDot {
+  fill: var(--text-muted, #bbb);
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .trendDot {
+  fill: rgba(255, 255, 255, 0.3);
+}
+
+.trendAxisLabel {
+  font-size: 10px;
+  fill: var(--text-muted, #888);
+  font-family: inherit;
+}
+
+[data-theme="dark"] .trendAxisLabel {
+  fill: rgba(255, 255, 255, 0.45);
+}
+
+.trendAxisTitle {
+  font-size: 10px;
+  fill: var(--text-muted, #aaa);
+  font-family: inherit;
+}

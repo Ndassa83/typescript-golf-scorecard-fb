@@ -38,7 +38,9 @@ import { ThrowPieChart } from "../../components/ThrowPieChart";
 import { AdminPanel } from "./AdminPanel";
 import AvatarIcon from "../../components/Avatar/AvatarIcon";
 import AvatarPicker from "../../components/Avatar/AvatarPicker";
-import { getH2HForPlayer, H2HRecord } from "../../utils/h2hHelpers";
+import { getH2HForPlayer, getDartH2HForPlayer, H2HRecord } from "../../utils/h2hHelpers";
+import ScoreTrendChart from "../../components/ScoreTrendChart";
+import { getParTypeAvgs, calculateHandicapIndex } from "../../utils/handicapHelpers";
 import "./Dashboard.css";
 
 const courseSelectStyles = {
@@ -123,6 +125,7 @@ const Dashboard = ({
   const [golfDateFrom, setGolfDateFrom] = useState("");
   const [golfDateTo, setGolfDateTo] = useState("");
   const [rivalriesVisible, setRivalriesVisible] = useState(5);
+  const [dartRivalriesVisible, setDartRivalriesVisible] = useState(5);
 
   const linkedPlayer = useMemo(
     () =>
@@ -270,11 +273,29 @@ const Dashboard = ({
     return { totalRounds: myGolfRounds.length, avg, bestDiff, mostActive };
   }, [myGolfRounds]);
 
+  // Par-type averages (par-3, par-4, par-5)
+  const parTypeAvgs = useMemo(() => {
+    if (!linkedPlayer) return null;
+    return getParTypeAvgs(golfRounds, linkedPlayer.userId);
+  }, [golfRounds, linkedPlayer]);
+
+  // Handicap Index
+  const handicapIndex = useMemo(() => {
+    if (!linkedPlayer) return null;
+    return calculateHandicapIndex(golfRounds, linkedPlayer.userId);
+  }, [golfRounds, linkedPlayer]);
+
   // H2H rivalries (computed from all rounds, not filtered)
   const rivalries = useMemo<H2HRecord[]>(() => {
     if (!linkedPlayer) return [];
     return getH2HForPlayer(golfRounds, linkedPlayer.userId, playerOptions);
   }, [golfRounds, linkedPlayer, playerOptions]);
+
+  // Dart H2H rivalries
+  const dartRivalries = useMemo<H2HRecord[]>(() => {
+    if (!linkedPlayer) return [];
+    return getDartH2HForPlayer(dartRounds, linkedPlayer.userId, playerOptions);
+  }, [dartRounds, linkedPlayer, playerOptions]);
 
   // Dart stats
   const dartStats = useMemo(() => {
@@ -377,6 +398,30 @@ const Dashboard = ({
             <span className="dashboardStatValue">
               {formatScoreToPar(golfStats.bestDiff).text}
             </span>
+            <span className="dashboardStatLabel">Handicap Index</span>
+            <span className="dashboardStatValue">
+              {handicapIndex !== null
+                ? `${handicapIndex >= 0 ? "+" : ""}${handicapIndex}`
+                : "—"}
+            </span>
+            {parTypeAvgs && parTypeAvgs.par3Avg !== null && (
+              <>
+                <span className="dashboardStatLabel">Avg on Par 3s</span>
+                <span className="dashboardStatValue">{parTypeAvgs.par3Avg.toFixed(2)}</span>
+              </>
+            )}
+            {parTypeAvgs && parTypeAvgs.par4Avg !== null && (
+              <>
+                <span className="dashboardStatLabel">Avg on Par 4s</span>
+                <span className="dashboardStatValue">{parTypeAvgs.par4Avg.toFixed(2)}</span>
+              </>
+            )}
+            {parTypeAvgs && parTypeAvgs.par5Avg !== null && (
+              <>
+                <span className="dashboardStatLabel">Avg on Par 5s</span>
+                <span className="dashboardStatValue">{parTypeAvgs.par5Avg.toFixed(2)}</span>
+              </>
+            )}
           </div>
         ) : (
           <div className="noGames">No rounds recorded yet.</div>
@@ -401,6 +446,15 @@ const Dashboard = ({
           </div>
         )}
       </div>
+
+      {/* Score Trend Chart */}
+      {linkedPlayer && myGolfRounds.length >= 2 && (
+        <ScoreTrendChart
+          rounds={golfRounds}
+          playerId={linkedPlayer.userId}
+          label="Score trend (5-round avg)"
+        />
+      )}
 
       {/* Rivalries */}
       {rivalries.length > 0 && (
@@ -623,7 +677,7 @@ const Dashboard = ({
               <span className="dashboardStatValue">
                 {dartStats.totalMatchWins} ({dartStats.matchWinPct.toFixed(0)}%)
               </span>
-              <span className="dashboardStatLabel">Game Wins</span>
+              <span className="dashboardStatLabel">Set Wins</span>
               <span className="dashboardStatValue">
                 {dartStats.totalGameWins}
               </span>
@@ -677,6 +731,46 @@ const Dashboard = ({
           <div className="noGames">No rounds recorded yet.</div>
         )}
       </div>
+
+      {/* Dart Rivalries */}
+      {dartRivalries.length > 0 && (
+        <div className="pastGamesCard">
+          <div className="pastGamesTitle">Dart Rivalries</div>
+          {dartRivalries.slice(0, dartRivalriesVisible).map((r) => {
+            const total = r.wins + r.losses + r.ties;
+            return (
+              <div key={r.opponentId} className="gameCard">
+                <div className="gameCardLeft">
+                  <span className="gameCardPlayer">
+                    <AvatarIcon
+                      avatarId={playerOptions.find((p) => p.value.userId === r.opponentId)?.value.avatar}
+                      size={18}
+                      initials={r.opponentName}
+                    />
+                    {" "}{r.opponentName}
+                  </span>
+                  <span className="gameCardSub">{total} match{total !== 1 ? "es" : ""}</span>
+                </div>
+                <span className="rivalryRecord">
+                  <span className="rivalryW">{r.wins}W</span>
+                  {" · "}
+                  <span className="rivalryL">{r.losses}L</span>
+                  {r.ties > 0 && <>{" · "}<span className="rivalryT">{r.ties}T</span></>}
+                </span>
+              </div>
+            );
+          })}
+          {dartRivalriesVisible < dartRivalries.length && (
+            <Button
+              className="loadMoreBtn"
+              variant="outlined"
+              onClick={() => setDartRivalriesVisible((v) => v + 5)}
+            >
+              Show More
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Past games */}
       <div className="pastGamesCard">

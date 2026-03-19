@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CollectionReference, Firestore } from "firebase/firestore";
+import { CollectionReference, Firestore, collection, getDocs, query, where } from "firebase/firestore";
 import { ScoreCardTable } from "./ScoreCardTable";
 import { HoleChanger } from "./HoleChanger";
 import { PlayerScores } from "./PlayerScores";
@@ -9,6 +9,7 @@ import { GolfRound, Course, Tournament, PlayerOptionType } from "../../types";
 import { saveToStorage, loadFromStorage, clearStorage, STORAGE_KEYS, GOLF_KEYS } from "../../utils/localStorage";
 import { BackyardGolfLogo } from "../../components/BackyardGolfLogo";
 import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
+import HoleBreakdown from "../StatPage/HoleBreakdown";
 import "./ScoreCard.css";
 
 type ScoreCardPageProps = {
@@ -40,8 +41,19 @@ const ScoreCardPage = ({
     () => loadFromStorage<number>(STORAGE_KEYS.GOLF_CURRENT_HOLE) ?? 0
   );
   const [quitDialogOpen, setQuitDialogOpen] = useState(false);
+  const [allCourseRounds, setAllCourseRounds] = useState<GolfRound[]>([]);
 
   useEffect(() => { saveToStorage(STORAGE_KEYS.GOLF_CURRENT_HOLE, currentHole); }, [currentHole]);
+
+  useEffect(() => {
+    if (!courseSelected) return;
+    getDocs(
+      query(
+        collection(database, "playerData"),
+        where("currentCourse.courseId", "==", courseSelected.courseId)
+      )
+    ).then((snap) => setAllCourseRounds(snap.docs.map((d) => d.data() as GolfRound)));
+  }, [courseSelected?.courseId]);
 
   const handleQuitRound = () => {
     clearStorage(...GOLF_KEYS, STORAGE_KEYS.GOLF_CURRENT_HOLE);
@@ -54,6 +66,10 @@ const ScoreCardPage = ({
     <div className="scoreCardContainer">
       <BackyardGolfLogo className="gameLogo" />
       <div className="courseName">{courseSelected?.courseName}</div>
+
+      {courseSelected && (
+        <HoleBreakdown allRounds={allCourseRounds} course={courseSelected} />
+      )}
 
       <ScoreCardTable
         playerRounds={playerRounds}
@@ -87,6 +103,7 @@ const ScoreCardPage = ({
         currentUserEmail={currentUserEmail}
         activeTournament={activeTournament}
         setActiveTournament={setActiveTournament}
+        playerOptions={playerOptions ?? []}
       />
 
       <Button color="error" onClick={() => setQuitDialogOpen(true)}>
