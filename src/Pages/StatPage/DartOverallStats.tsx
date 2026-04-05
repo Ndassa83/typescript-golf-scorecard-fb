@@ -9,8 +9,8 @@ type DartOverallStatsProps = {
   filteredAllScoreData: DartRound[];
   allScoreData: DartRound[];
   selectedPlayer: FetchedPlayer | null;
+  combinedMode?: boolean;
 };
-
 
 const buildPlayerStats = (rounds: DartRound[]): playerFilteredStatsMap => {
   const map: playerFilteredStatsMap = {};
@@ -99,8 +99,108 @@ const buildPlayerStats = (rounds: DartRound[]): playerFilteredStatsMap => {
   return map;
 };
 
+const buildCombinedStats = (rounds: DartRound[]): playerFilteredStats => {
+  const allTosses = rounds.flatMap((r) => r.scores);
+  const allDartValues = rounds.flatMap((r) => r.scores.flatMap((t) => t.values ?? []));
+  const totalDarts = allDartValues.length;
+  const matchRounds = rounds.filter((r) => r.matchWinner !== null);
+  const totalMatchWins = rounds.filter((r) => r.matchWinner === true).length;
+  return {
+    name: "All Players",
+    userId: -1,
+    totalRoundsPlayed: rounds.length,
+    totalMatchWins,
+    totalMatchesPlayed: matchRounds.length,
+    matchWinPct: matchRounds.length > 0 ? totalMatchWins / matchRounds.length : 0,
+    totalGameWins: rounds.reduce((sum, r) => sum + r.gameWins, 0),
+    highScoreToss: getTossHighScore(rounds),
+    highScoreSet: getSetHighScore(rounds),
+    highScoreSolo: getSoloHighScore(rounds),
+    throwMap: getThrowMap(rounds),
+    totalTossCount: allTosses.length,
+    avgTossScore: allTosses.length > 0
+      ? allTosses.reduce((sum, t) => sum + tossSum(t), 0) / allTosses.length
+      : 0,
+    bullRate: totalDarts > 0
+      ? allDartValues.filter((v) => v === 50 || v === 100).length / totalDarts
+      : 0,
+    missRate: totalDarts > 0
+      ? allDartValues.filter((v) => v === 0).length / totalDarts
+      : 0,
+    longestWinStreak: 0,
+    currentWinStreak: 0,
+  };
+};
+
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 const dec = (n: number) => n.toFixed(1);
+
+const PlayerStatsCard = ({ stats, showStreak = true }: { stats: playerFilteredStats; showStreak?: boolean }) => {
+  const throwEntries = Array.from(stats.throwMap.entries());
+  const totalThrows = throwEntries.reduce((sum, [, c]) => sum + c, 0);
+  return (
+    <div className="dartPlayerStats">
+      <div className="dartPlayerName">{stats.name}</div>
+      <div className="dartStatGrid">
+        <span className="dartStatLabel">Rounds Played</span>
+        <span className="dartStatValue">{stats.totalRoundsPlayed}</span>
+
+        <span className="dartStatLabel">Match Wins</span>
+        <span className="dartStatValue">
+          {stats.totalMatchWins}
+          {stats.totalMatchesPlayed > 0 && (
+            <span className="dartStatSub"> ({pct(stats.matchWinPct)} win rate)</span>
+          )}
+        </span>
+
+        <span className="dartStatLabel">Set Wins</span>
+        <span className="dartStatValue">{stats.totalGameWins}</span>
+
+        {showStreak && (
+          <>
+            <span className="dartStatLabel">Win Streak</span>
+            <span className="dartStatValue">
+              {stats.currentWinStreak} current · {stats.longestWinStreak} best
+            </span>
+          </>
+        )}
+
+        <span className="dartStatLabel">Best Toss</span>
+        <span className="dartStatValue">{stats.highScoreToss}</span>
+
+        {stats.highScoreSet > 0 && (
+          <>
+            <span className="dartStatLabel">Best Set</span>
+            <span className="dartStatValue">{stats.highScoreSet}</span>
+          </>
+        )}
+
+        {stats.highScoreSolo > 0 && (
+          <>
+            <span className="dartStatLabel">Best Solo</span>
+            <span className="dartStatValue">{stats.highScoreSolo}</span>
+          </>
+        )}
+
+        <span className="dartStatLabel">Avg Toss Score</span>
+        <span className="dartStatValue">{dec(stats.avgTossScore)} pts</span>
+
+        <span className="dartStatLabel">Bull Rate</span>
+        <span className="dartStatValue">{pct(stats.bullRate)}</span>
+
+        <span className="dartStatLabel">Miss Rate</span>
+        <span className="dartStatValue">{pct(stats.missRate)}</span>
+      </div>
+
+      {totalThrows > 0 && (
+        <div className="throwDistribution">
+          <div className="throwDistLabel">Throw Distribution</div>
+          <ThrowPieChart entries={throwEntries} total={totalThrows} />
+        </div>
+      )}
+    </div>
+  );
+};
 
 type LeaderboardEntry = { stats: playerFilteredStats; displayValue: string };
 
@@ -133,6 +233,7 @@ const DartOverallStats = ({
   filteredAllScoreData,
   allScoreData,
   selectedPlayer,
+  combinedMode,
 }: DartOverallStatsProps) => {
   const [activeIdx, setActiveIdx] = useState(0);
 
@@ -151,82 +252,32 @@ const DartOverallStats = ({
     return <div className="dartOverallStats">No rounds found.</div>;
   }
 
+  // Combined view — no player selected, show aggregate stats for all rounds
+  if (combinedMode) {
+    if (filteredAllScoreData.length === 0) {
+      return <div className="dartOverallStats">No rounds found.</div>;
+    }
+    return (
+      <div className="dartOverallStats">
+        <PlayerStatsCard stats={buildCombinedStats(filteredAllScoreData)} showStreak={false} />
+      </div>
+    );
+  }
+
   // Detail view — player is selected
   if (selectedPlayer !== null) {
     const stats = filteredPlayerStatsMap[String(selectedPlayer.userId)];
     if (!stats) {
       return <div className="dartOverallStats">No rounds found for this player.</div>;
     }
-
-    const throwEntries = Array.from(stats.throwMap.entries());
-    const totalThrows = throwEntries.reduce((sum, [, c]) => sum + c, 0);
-    const hasSolo = stats.highScoreSolo > 0;
-    const hasSet = stats.highScoreSet > 0;
-
     return (
       <div className="dartOverallStats">
-        <div className="dartPlayerStats">
-          <div className="dartPlayerName">{stats.name}</div>
-
-          <div className="dartStatGrid">
-            <span className="dartStatLabel">Rounds Played</span>
-            <span className="dartStatValue">{stats.totalRoundsPlayed}</span>
-
-            <span className="dartStatLabel">Match Wins</span>
-            <span className="dartStatValue">
-              {stats.totalMatchWins}
-              {stats.totalMatchesPlayed > 0 && (
-                <span className="dartStatSub"> ({pct(stats.matchWinPct)} win rate)</span>
-              )}
-            </span>
-
-            <span className="dartStatLabel">Game Wins</span>
-            <span className="dartStatValue">{stats.totalGameWins}</span>
-
-            <span className="dartStatLabel">Win Streak</span>
-            <span className="dartStatValue">
-              {stats.currentWinStreak} current · {stats.longestWinStreak} best
-            </span>
-
-            <span className="dartStatLabel">Best Toss</span>
-            <span className="dartStatValue">{stats.highScoreToss}</span>
-
-            {hasSet && (
-              <>
-                <span className="dartStatLabel">Best Set</span>
-                <span className="dartStatValue">{stats.highScoreSet}</span>
-              </>
-            )}
-
-            {hasSolo && (
-              <>
-                <span className="dartStatLabel">Best Solo</span>
-                <span className="dartStatValue">{stats.highScoreSolo}</span>
-              </>
-            )}
-
-            <span className="dartStatLabel">Avg Toss Score</span>
-            <span className="dartStatValue">{dec(stats.avgTossScore)} pts</span>
-
-            <span className="dartStatLabel">Bull Rate</span>
-            <span className="dartStatValue">{pct(stats.bullRate)}</span>
-
-            <span className="dartStatLabel">Miss Rate</span>
-            <span className="dartStatValue">{pct(stats.missRate)}</span>
-          </div>
-
-          {totalThrows > 0 && (
-            <div className="throwDistribution">
-              <div className="throwDistLabel">Throw Distribution</div>
-              <ThrowPieChart entries={throwEntries} total={totalThrows} />
-            </div>
-          )}
-        </div>
+        <PlayerStatsCard stats={stats} />
       </div>
     );
   }
 
-  // Leaderboard view — no player selected
+  // Leaderboard view
   if (allScoreData.length === 0) {
     return <div className="dartOverallStats">No rounds found.</div>;
   }
@@ -243,7 +294,7 @@ const DartOverallStats = ({
   const allCategories: DartCategoryDef[] = [
     { label: "Match Wins", description: "Total matches won across all game types.", entries: sorted("totalMatchWins", (s) => `${s.totalMatchWins} wins${s.totalMatchesPlayed > 0 ? ` · ${pct(s.matchWinPct)} win rate` : ""}`) },
     { label: "Win %", description: "Match win percentage (min. 1 match played).", entries: sorted("matchWinPct", (s) => `${pct(s.matchWinPct)} (${s.totalMatchWins}/${s.totalMatchesPlayed})`, (s) => s.totalMatchesPlayed >= 1) },
-    { label: "Game Wins", description: "Total individual game or set wins.", entries: sorted("totalGameWins", (s) => `${s.totalGameWins}`) },
+    { label: "Set Wins", description: "Total sets won across all matches.", entries: sorted("totalGameWins", (s) => `${s.totalGameWins}`) },
     { label: "Win Streak", description: "Longest consecutive match win streak on record.", entries: sorted("longestWinStreak", (s) => `${s.longestWinStreak} in a row`) },
     { label: "Best Toss", description: "Highest single 3-dart toss score ever recorded.", entries: sorted("highScoreToss", (s) => `${s.highScoreToss} pts`) },
     { label: "Avg Toss", description: "Average points scored per toss across all rounds.", entries: sorted("avgTossScore", (s) => `${dec(s.avgTossScore)} pts/toss`) },

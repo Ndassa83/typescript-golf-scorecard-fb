@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import "firebase/firestore";
-import { Firestore, CollectionReference, collection, addDoc, getDocs, doc, updateDoc, increment, query, where } from "firebase/firestore";
-import { Button, Modal } from "@mui/material";
-import { GolfRound, Course, Tournament } from "../../types";
+import { Firestore, CollectionReference, collection, addDoc, getDocs, updateDoc, increment, arrayUnion, query, where } from "firebase/firestore";
+import { Alert, Button, Modal } from "@mui/material";
+import { GolfRound, Course, Tournament, TournamentBadge, TournamentStandingRow, PlayerOptionType } from "../../types";
 import { useState } from "react";
+import dayjs from "dayjs";
 import { clearStorage, GOLF_KEYS, STORAGE_KEYS, TOURNAMENT_KEYS } from "../../utils/localStorage";
 import "./PostRound.css";
 
@@ -17,7 +18,30 @@ type PostRoundProps = {
   currentUserEmail: string | null;
   activeTournament: Tournament | null;
   setActiveTournament: React.Dispatch<React.SetStateAction<Tournament | null>>;
+  playerOptions: PlayerOptionType[];
 };
+
+function buildStandings(
+  rounds: GolfRound[],
+  participantIds: number[],
+  playerOptions: PlayerOptionType[]
+): TournamentStandingRow[] {
+  const map: Record<number, TournamentStandingRow> = {};
+  participantIds.forEach((id) => {
+    const player = playerOptions.find((p) => p.value.userId === id)?.value;
+    if (player) {
+      map[id] = { userId: id, name: player.userName, rounds: 0, totalStrokes: 0, totalPar: 0, scoreToPar: 0 };
+    }
+  });
+  rounds.forEach((r) => {
+    if (!map[r.userId]) return;
+    map[r.userId].rounds += 1;
+    map[r.userId].totalStrokes += r.scores.reduce((a, b) => a + b, 0);
+    map[r.userId].totalPar += r.currentCourse.totalPar;
+  });
+  Object.values(map).forEach((row) => { row.scoreToPar = row.totalStrokes - row.totalPar; });
+  return Object.values(map).sort((a, b) => a.scoreToPar - b.scoreToPar);
+}
 
 type ResultRow = {
   name: string;
@@ -72,58 +96,117 @@ export const PostRound = ({
   activeTournament,
   setActiveTournament,
   database,
+  playerOptions,
 }: PostRoundProps) => {
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [results, setResults] = useState<ResultRow[]>([]);
   const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [autoCompletedId, setAutoCompletedId] = useState<string | null>(null);
 
   const postRound = async () => {
     if (!courseSelected) return;
     setPosting(true);
+    setPostError(null);
 
-    // Fetch historical rounds before adding new ones so avg excludes today's round
-    const snapshot = await getDocs(collectionRef);
-    const historical: GolfRound[] = snapshot.docs.map((d) => d.data() as GolfRound);
+    try {
+      // Fetch historical rounds before adding new ones so avg excludes today's round
+      const snapshot = await getDocs(collectionRef);
+      const historical: GolfRound[] = snapshot.docs.map((d) => d.data() as GolfRound);
 
-    const computed: ResultRow[] = playerRounds.map((player) => {
-      const total = player.scores.reduce((a, b) => a + b, 0);
-      const scoreToPar = total - courseSelected.totalPar;
-      const courseAvg = getCourseAvg(historical, player.userId, courseSelected.courseId);
-      return { name: player.name, total, scoreToPar, courseAvg };
-    });
+      const computed: ResultRow[] = playerRounds.map((player) => {
+        const total = player.scores.reduce((a, b) => a + b, 0);
+        const scoreToPar = total - courseSelected.totalPar;
+        const courseAvg = getCourseAvg(historical, player.userId, courseSelected.courseId);
+        return { name: player.name, total, scoreToPar, courseAvg };
+      });
 
-    await Promise.all(playerRounds.map((player) => addDoc(collectionRef, player)));
+      await Promise.all(playerRounds.map((player) => addDoc(collectionRef, player)));
 
-    // Clear storage immediately so a page-refresh can't re-post the same rounds
-    clearStorage(...GOLF_KEYS, STORAGE_KEYS.GOLF_CURRENT_HOLE);
+      // Clear storage immediately so a page-refresh can't re-post the same rounds
+      clearStorage(...GOLF_KEYS, STORAGE_KEYS.GOLF_CURRENT_HOLE);
 
-    // Increment tournament round count if this was a tournament round
-    const tournamentId = playerRounds[0]?.tournamentId;
-    if (tournamentId) {
-      const tSnap = await getDocs(
-        query(collection(database, "tournaments"), where("tournamentId", "==", tournamentId))
-      );
-      if (!tSnap.empty) {
-        await updateDoc(tSnap.docs[0].ref, { roundCount: increment(1) });
-        setActiveTournament((prev) =>
-          prev ? { ...prev, roundCount: prev.roundCount + 1 } : prev
+      // Increment tournament round count if this was a tournament round
+      const tournamentId = playerRounds[0]?.tournamentId;
+      if (tournamentId && activeTournament) {
+        const tSnap = await getDocs(
+          query(collection(database, "tournaments"), where("tournamentId", "==", tournamentId))
         );
-      }
-    }
+        if (!tSnap.empty) {
+          const newRoundCount = activeTournament.roundCount + 1;
+          await updateDoc(tSnap.docs[0].ref, { roundCount: increment(1) });
 
-    setResults(computed);
-    setPosting(false);
-    setModalOpen(true);
+          if (newRoundCount >= activeTournament.targetRounds) {
+            // Auto-complete the tournament
+            const allRoundsSnap = await getDocs(
+              query(collection(database, "playerData"), where("tournamentId", "==", tournamentId))
+            );
+            const allRounds = allRoundsSnap.docs.map((d) => d.data() as GolfRound);
+            const standings = buildStandings(allRounds, activeTournament.participantIds, playerOptions);
+            const now = dayjs().toISOString();
+            const lowestScore = standings[0]?.scoreToPar ?? 0;
+            const tied = standings.filter((s) => s.scoreToPar === lowestScore);
+            const maxRounds = Math.max(...tied.map((w) => w.rounds));
+            const finalWinners = tied.filter((w) => w.rounds === maxRounds);
+
+            await updateDoc(tSnap.docs[0].ref, {
+              status: "completed",
+              completedAt: now,
+              winnerId: finalWinners[0].userId,
+              winnerName: finalWinners.map((w) => w.name).join(", "),
+            });
+
+            const userListRef = collection(database, "userList");
+            await Promise.all(
+              finalWinners.map(async (w) => {
+                const userSnap = await getDocs(
+                  query(userListRef, where("userId", "==", w.userId))
+                );
+                if (!userSnap.empty) {
+                  const badge: TournamentBadge = {
+                    tournamentId: activeTournament.tournamentId,
+                    tournamentName: activeTournament.name,
+                    awardedAt: now,
+                  };
+                  await updateDoc(userSnap.docs[0].ref, { badges: arrayUnion(badge) });
+                }
+              })
+            );
+
+            setActiveTournament(null);
+            clearStorage(...TOURNAMENT_KEYS);
+            setAutoCompletedId(tournamentId);
+          } else {
+            setActiveTournament((prev) =>
+              prev ? { ...prev, roundCount: newRoundCount } : prev
+            );
+          }
+        }
+      }
+
+      setResults(computed);
+      setModalOpen(true);
+    } catch (err) {
+      console.error("Failed to post round:", err);
+      setPostError("Failed to save round. Please try again.");
+    } finally {
+      setPosting(false);
+    }
   };
 
   const goHome = () => {
-    const isTournament = !!playerRounds[0]?.tournamentId;
     setPlayerRounds([]);
     setCourseSelected(null);
     clearStorage(...GOLF_KEYS, STORAGE_KEYS.GOLF_CURRENT_HOLE);
-    navigate(isTournament ? "/Tournament" : "/");
+    if (autoCompletedId) {
+      navigate(`/Tournament/Standings/${autoCompletedId}`);
+    } else if (playerRounds[0]?.tournamentId) {
+      navigate("/Tournament");
+    } else {
+      navigate("/");
+    }
   };
 
   const shareText = courseSelected
@@ -157,6 +240,11 @@ export const PostRound = ({
       <Button className="button" disabled={isPostDisabled || posting} onClick={postRound}>
         {posting ? "Posting..." : "Post Round"}
       </Button>
+      {postError && (
+        <Alert severity="error" sx={{ mt: 1 }} onClose={() => setPostError(null)}>
+          {postError}
+        </Alert>
+      )}
 
       <Modal open={modalOpen}>
         <div className="modalContainer">
@@ -218,7 +306,7 @@ export const PostRound = ({
             </div>
 
             <Button variant="contained" className="goHomeBtn" onClick={goHome}>
-              Go Home
+              {autoCompletedId ? "🏆 View Tournament Results" : "Go Home"}
             </Button>
           </div>
         </div>

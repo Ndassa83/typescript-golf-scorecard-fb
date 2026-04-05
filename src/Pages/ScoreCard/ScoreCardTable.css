@@ -8,6 +8,8 @@
   box-shadow: 3px 3px 0 var(--text-dark);
   margin: 20px auto;
   width: fit-content;
+  overflow: hidden;
+  transform: translateZ(0);
 }
 
 .scoreCardScrollWrapper {
@@ -47,7 +49,6 @@
   color: white;
   &:last-child {
     border-bottom: none !important;
-    border-bottom-left-radius: 10px;
   }
 }
 
@@ -55,6 +56,7 @@
 .scores {
   background-color: #fdf8ee;
   color: var(--text-dark);
+  position: relative;
   &:last-child {
     border-bottom: none !important;
   }
@@ -74,7 +76,7 @@
   font-weight: bold;
   background-color: #f0e8d4;
   &:last-child {
-    border-bottom-right-radius: 10px;
+    border-bottom: none !important;
   }
 }
 
@@ -165,12 +167,22 @@
 .playerDateDiv {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  width: 100%;
 }
 
 .playerLabelRow {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.playerNameLabel {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
 }
 
 @media (max-width: 768px) {

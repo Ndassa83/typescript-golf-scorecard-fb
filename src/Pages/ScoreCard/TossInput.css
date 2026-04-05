@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
+  gap: 10px;
+  padding: 12px 16px;
   width: 100%;
 }
 
@@ -12,26 +12,127 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   width: 100%;
-  max-width: 320px;
+  max-width: 280px;
 }
 
-.tossGridClear {
-  grid-column: 1 / -1;
+.tossBtn {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--green-primary);
+  color: white;
+  border: 2px solid var(--text-dark);
+  border-radius: 10px;
+  box-shadow: 2px 2px 0 var(--text-dark);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.08s, box-shadow 0.08s;
+  font-family: 'Fredoka One', cursive;
+}
+
+.tossBtn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.tossBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.tossBtnValue {
+  font-size: 1.35rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.tossBtnCount {
+  font-size: 0.7rem;
+  font-weight: bold;
+  background-color: var(--yellow-accent);
+  color: var(--text-dark);
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin-top: 3px;
+  line-height: 1.2;
 }
 
 .tossTotalDisplay {
   font-family: 'Fredoka One', cursive;
+  font-size: 1.5rem;
+  color: var(--text-dark);
+  text-align: center;
+  line-height: 1;
+}
+
+.tossTotalSub {
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+.tossBottomRow {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.tossActionBtn {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 2px solid var(--text-dark);
+  box-shadow: 2px 2px 0 var(--text-dark);
+  font-family: 'Fredoka One', cursive;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.tossActionBtn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.tossActionBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.tossClearBtn {
+  background-color: #e0e0e0;
+  color: var(--text-dark);
+  flex: 0 0 auto;
+  min-width: 72px;
+}
+
+.tossSubmitBtn {
+  background-color: var(--yellow-accent);
+  color: var(--text-dark);
+  font-weight: bold;
+}
+
+.activePlayerLabel {
   font-size: 16px;
   color: var(--text-dark);
   text-align: center;
 }
 
-.tossSubmitRow {
+.orderSelectionLabel {
+  font-size: 18px;
+  font-family: 'Fredoka One', cursive;
+  color: var(--text-dark);
+  text-align: center;
+}
+
+.orderSelectionButtons {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   justify-content: center;
-  width: 100%;
-  max-width: 400px;
+  flex-wrap: wrap;
 }

@@ -27,7 +27,7 @@ import {
   onAuthStateChanged,
   User,
 } from "firebase/auth";
-import { Button, IconButton, Tooltip } from "@mui/material";
+import { Alert, Button, IconButton, Tooltip } from "@mui/material";
 import LocalCafeIcon from "@mui/icons-material/LocalCafe";
 import NightsStayIcon from "@mui/icons-material/NightsStay";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -114,6 +114,7 @@ const App = () => {
     };
   }, [keepAwake]);
 
+  const [dataLoadError, setDataLoadError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -230,6 +231,7 @@ const App = () => {
       },
     ).catch((err) => {
       console.error("Failed to fetch players:", err);
+      setDataLoadError("Failed to load player data. Check your connection and refresh.");
     });
   }, [database]);
 
@@ -246,6 +248,7 @@ const App = () => {
       },
     ).catch((err) => {
       console.error("Failed to fetch courses:", err);
+      setDataLoadError("Failed to load course data. Check your connection and refresh.");
     });
   }, [database]);
 
@@ -426,6 +429,11 @@ const App = () => {
             />
           )}
         </nav>
+        {dataLoadError && (
+          <Alert severity="error" onClose={() => setDataLoadError(null)} sx={{ borderRadius: 0 }}>
+            {dataLoadError}
+          </Alert>
+        )}
         <Routes>
           <Route
             path="/"

@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { GolfRound } from "../../types";
+import { calculateHandicapIndex } from "../../utils/handicapHelpers";
 import "./GolfLeaderboards.css";
 
 type PlayerGolfStats = {
@@ -133,7 +134,7 @@ const GolfLeaderboardTable = ({ title, entries }: { title: string; entries: Entr
   );
 };
 
-type CategoryDef = { label: string; description: string; entries: (stats: PlayerGolfStats[], allStats: PlayerGolfStats[]) => Entry[] };
+type CategoryDef = { label: string; description: string; entries: (stats: PlayerGolfStats[], allStats: PlayerGolfStats[], allRounds: GolfRound[]) => Entry[] };
 
 type Props = { allScoreData: GolfRound[] };
 
@@ -171,6 +172,21 @@ const GolfLeaderboards = ({ allScoreData }: Props) => {
     { label: "Holes in One", description: "Total aces (score of 1) recorded across all rounds.", entries: (s) => desc(s, "totalHolesInOne", (p) => `${p.totalHolesInOne}`) },
     { label: "Bogey-Free", description: "Rounds completed without a single bogey or worse.", entries: (s) => desc(s, "bogeyFreeRounds", (p) => `${p.bogeyFreeRounds} rounds`) },
     { label: "Under Par", description: "Number of rounds finished with a total score below par.", entries: (s) => desc(s, "roundsUnderPar", (p) => `${p.roundsUnderPar} rounds`) },
+    {
+      label: "Handicap",
+      description: "Simplified Handicap Index: avg of best 8 differentials (score − par) from last 20 rounds × 0.96. Min. 3 rounds required. Lower is better.",
+      entries: (_s, all, rounds) => {
+        return all
+          .map((p) => ({ ...p, hi: calculateHandicapIndex(rounds, p.userId) }))
+          .filter((p) => p.hi !== null)
+          .sort((a, b) => (a.hi as number) - (b.hi as number))
+          .map((p) => ({
+            userId: p.userId,
+            name: p.name,
+            displayValue: `${(p.hi as number) >= 0 ? "+" : ""}${p.hi}`,
+          }));
+      },
+    },
   ];
 
   if (allStats.length === 0) {
@@ -178,7 +194,7 @@ const GolfLeaderboards = ({ allScoreData }: Props) => {
   }
 
   const active = categories[activeIdx];
-  const entries = active.entries([...allStats], allStats);
+  const entries = active.entries([...allStats], allStats, allScoreData);
 
   return (
     <div className="leaderboardDashboard">
