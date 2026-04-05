@@ -10,6 +10,7 @@ import { saveToStorage, loadFromStorage, clearStorage, STORAGE_KEYS, GOLF_KEYS }
 import { BackyardGolfLogo } from "../../components/BackyardGolfLogo";
 import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 import HoleBreakdown from "../StatPage/HoleBreakdown";
+import LiveTournamentLeaderboard from "./LiveTournamentLeaderboard";
 import "./ScoreCard.css";
 
 type ScoreCardPageProps = {
@@ -69,6 +70,16 @@ const ScoreCardPage = ({
 
       {courseSelected && (
         <HoleBreakdown allRounds={allCourseRounds} course={courseSelected} />
+      )}
+
+      {activeTournament && (
+        <LiveTournamentLeaderboard
+          activeTournament={activeTournament}
+          playerRounds={playerRounds}
+          courseSelected={courseSelected}
+          playerOptions={playerOptions ?? []}
+          database={database}
+        />
       )}
 
       <ScoreCardTable

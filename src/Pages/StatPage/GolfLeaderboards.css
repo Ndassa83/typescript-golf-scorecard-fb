@@ -14,7 +14,8 @@
 }
 
 .leaderboardRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 8px;
   padding: 6px 0;
@@ -34,27 +35,24 @@
 }
 
 .leaderboardRank {
-  width: 28px;
   font-weight: bold;
   color: var(--text-dark);
-  flex-shrink: 0;
   font-size: 13px;
 }
 
 .leaderboardName {
-  flex: 1;
   color: var(--text-dark);
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .leaderboardStat {
   font-weight: bold;
   color: var(--green-primary);
   text-align: right;
-  flex-shrink: 0;
-  min-width: 90px;
 }
 
 .leaderboardDescription {
